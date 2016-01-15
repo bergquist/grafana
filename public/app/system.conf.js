@@ -36,6 +36,7 @@ System.config({
     },
     plugins: {
       defaultExtension: 'js',
+      //defaultExtension: false,
     },
     test: {
       defaultExtension: 'js',
@@ -43,6 +44,8 @@ System.config({
   },
 
   map: {
+    image: 'vendor/systemjs-image',
+    css: 'vendor/systemjs-css'
   },
 
   meta: {
@@ -51,5 +54,11 @@ System.config({
       deps: ['jquery'],
       exports: 'angular',
     },
+    'public/plugins/**/*.png': {
+      loader: 'image'
+    },
+    'public/plugins/*.css': {
+      loader: 'css'
+    }
   }
 });
