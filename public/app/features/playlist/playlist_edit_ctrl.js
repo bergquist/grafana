@@ -63,6 +63,18 @@ function (angular, config, _) {
       });
     };
 
+    $scope.addSearchToPlaylist = function(query) {
+      var playlistItem = {
+        value: query,
+        type: 'dashboard_search',
+        order: $scope.playlistItems.length + 1,
+        title: 'search: ' + query
+      };
+
+      $scope.playlistItems.push(playlistItem);
+      $scope.filterFoundPlaylistItems();
+    };
+
     $scope.addPlaylistItem = function(playlistItem) {
       playlistItem.value = playlistItem.id.toString();
       playlistItem.type = 'dashboard_by_id';
@@ -132,11 +144,11 @@ function (angular, config, _) {
     };
 
     $scope.movePlaylistItemUp = function(playlistItem) {
-      $scope.moveDashboard(playlistItem, -1);
+      $scope.movePlaylistItem(playlistItem, -1);
     };
 
     $scope.movePlaylistItemDown = function(playlistItem) {
-      $scope.moveDashboard(playlistItem, 1);
+      $scope.movePlaylistItem(playlistItem, 1);
     };
 
     $scope.init();

@@ -64,7 +64,10 @@
 
   <div class="row">
     <div class="span5 pull-left">
-			<h5>Search results ({{filteredPlaylistItems.length}})</h5>
+			<h5>Search results ({{filteredPlaylistItems.length}})</h5> <button class="btn btn-inverse btn-mini pull-right" ng-click="addSearchToPlaylist(searchQuery)">
+              <i class="fa fa-plus"></i>
+              Add search to playlist
+            </button>
        <table class="grafana-options-table">
         <tr ng-repeat="playlistItem in filteredPlaylistItems">
           <td style="white-space: nowrap;">
