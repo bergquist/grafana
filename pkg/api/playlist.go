@@ -8,6 +8,7 @@ import (
 	"github.com/grafana/grafana/pkg/log"
 	"github.com/grafana/grafana/pkg/middleware"
 	m "github.com/grafana/grafana/pkg/models"
+	"github.com/grafana/grafana/pkg/services/search"
 )
 
 func ValidateOrgPlaylist(c *middleware.Context) {
@@ -104,34 +105,66 @@ func LoadPlaylistItems(id int64) ([]m.PlaylistItem, error) {
 func LoadPlaylistDashboards(id int64) ([]m.PlaylistDashboardDto, error) {
 	playlistItems, _ := LoadPlaylistItems(id)
 
-	dashboardIds := make([]int64, 0)
+	dashboardByIds := make([]int64, 0)
+	dashboardSearches := make([]string, 0)
 
 	for _, i := range playlistItems {
-		dashboardId, _ := strconv.ParseInt(i.Value, 10, 64)
-		dashboardIds = append(dashboardIds, dashboardId)
+		if i.Type == "dashboard_by_id" {
+			dashboardId, _ := strconv.ParseInt(i.Value, 10, 64)
+			dashboardByIds = append(dashboardByIds, dashboardId)
+		}
+
+		if i.Type == "dashboard_search" {
+			log.Info("%v", i)
+			dashboardSearches = append(dashboardSearches, i.Value)
+		}
 	}
 
-	if len(dashboardIds) == 0 {
-		return make([]m.PlaylistDashboardDto, 0), nil
+	result := make([]m.PlaylistDashboardDto, 0)
+
+	if len(dashboardByIds) > 0 {
+		dashboardQuery := m.GetPlaylistDashboardsQuery{DashboardIds: dashboardByIds}
+		if err := bus.Dispatch(&dashboardQuery); err != nil {
+			log.Warn("dashboardquery failed: %v", err)   //TODO: remove
+			return nil, errors.New("Playlist not found") //TODO: dont swallow error
+		}
+
+		for _, item := range *dashboardQuery.Result {
+			result = append(result, m.PlaylistDashboardDto{
+				Id:    item.Id,
+				Slug:  item.Slug,
+				Title: item.Title,
+				Uri:   "db/" + item.Slug,
+			})
+		}
 	}
 
-	dashboardQuery := m.GetPlaylistDashboardsQuery{DashboardIds: dashboardIds}
-	if err := bus.Dispatch(&dashboardQuery); err != nil {
-		log.Warn("dashboardquery failed: %v", err)
-		return nil, errors.New("Playlist not found")
+	if len(dashboardSearches) > 0 {
+
+		for _, query := range dashboardSearches {
+			searchQuery := search.Query{
+				Title:     query,
+				Tags:      []string{},
+				UserId:    1,
+				Limit:     100,
+				IsStarred: true,
+				OrgId:     1,
+			}
+
+			if err := bus.Dispatch(&searchQuery); err == nil {
+				//sök då
+
+				for _, item := range searchQuery.Result {
+
+					result = append(result, m.PlaylistDashboardDto{
+						Id: item.Id,
+					})
+				}
+			}
+		}
 	}
 
-	dtos := make([]m.PlaylistDashboardDto, 0)
-	for _, item := range *dashboardQuery.Result {
-		dtos = append(dtos, m.PlaylistDashboardDto{
-			Id:    item.Id,
-			Slug:  item.Slug,
-			Title: item.Title,
-			Uri:   "db/" + item.Slug,
-		})
-	}
-
-	return dtos, nil
+	return result, nil
 }
 
 func GetPlaylistItems(c *middleware.Context) Response {
