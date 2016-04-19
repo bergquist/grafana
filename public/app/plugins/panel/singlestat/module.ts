@@ -333,7 +333,7 @@ class SingleStatCtrl extends MetricsPanelCtrl {
             value: {
               color: panel.colorValue ? getColorForValue(data, data.valueRounded) : null,
               formatter: function () { return data.valueFormated; },
-              font: { size: 30 }
+              font: { size: getGaugeFontSize() }
             },
             show: true
           }
@@ -347,6 +347,15 @@ class SingleStatCtrl extends MetricsPanelCtrl {
       };
 
       $.plot(plotCanvas, [plotSeries], options);
+    }
+
+    function getGaugeFontSize() {
+      if (panel.valueFontSize) {
+        var num = parseInt(panel.valueFontSize.substring(0, panel.valueFontSize.length - 1));
+        return 30 * (num / 100);
+      } else {
+        return 30;
+      }
     }
 
     function addSparkline() {
@@ -410,7 +419,6 @@ class SingleStatCtrl extends MetricsPanelCtrl {
 
     function render() {
       if (!ctrl.data) { return; }
-
       data = ctrl.data;
       setElementHeight();
 
