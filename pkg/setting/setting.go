@@ -153,6 +153,8 @@ var (
 	S3TempImageStoreBucketUrl string
 	S3TempImageStoreAccessKey string
 	S3TempImageStoreSecretKey string
+
+	ImageUploadProvider string
 )
 
 type CommandLineArgs struct {
@@ -543,6 +545,9 @@ func NewConfigContext(args *CommandLineArgs) error {
 	S3TempImageStoreBucketUrl = s3temp.Key("bucket_url").String()
 	S3TempImageStoreAccessKey = s3temp.Key("access_key").String()
 	S3TempImageStoreSecretKey = s3temp.Key("secret_key").String()
+
+	imageUploadingSection := Cfg.Section("image.uploader")
+	ImageUploadProvider = imageUploadingSection.Key("provider").MustString("grafana")
 	return nil
 }
 
