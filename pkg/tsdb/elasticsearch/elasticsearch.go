@@ -102,7 +102,7 @@ func (e *EsExecutor) search(esQuery EsQuery, context *tsdb.QueryContext) *elasti
 
 	//build and execute search
 	searchService := esClient.Search().
-		Index("collectd-*"). // search in index //TODO set the correct index
+		Index("metrics-*"). // search in index //TODO set the correct index
 		SearchType("count").
 		Size(0).     //unlimited results returned
 		Pretty(true) // pretty print request and response JSON
