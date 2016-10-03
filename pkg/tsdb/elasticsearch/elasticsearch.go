@@ -62,7 +62,7 @@ func (e *EsExecutor) Execute(ctx context.Context, queries tsdb.QuerySlice, conte
 	return batchResult
 }
 
-func (e *EsExecutor) buildClient(dataSourceInfo *tsdb.DataSourceInfo) *elastic.Client {
+func (e *EsExecutor) buildClient(dataSourceInfo *ElasticDatasource) *elastic.Client {
 	// Create a client
 	var clientOptions []elastic.ClientOptionFunc
 	clientOptions = append(clientOptions, elastic.SetURL(dataSourceInfo.Url))
@@ -88,7 +88,7 @@ func (e *EsExecutor) convertQueries(queries tsdb.QuerySlice) []EsQuery {
 		if jerr != nil {
 			e.log.Error("json parser error %s", "error", jerr)
 		} else {
-			esQuery.DataSource = query.DataSource
+			esQuery.DataSource, _ = NewElasticDatasource(query.DataSource)
 			esQuerys = append(esQuerys, esQuery)
 		}
 	}
@@ -100,9 +100,17 @@ func (e *EsExecutor) search(esQuery EsQuery, context *tsdb.QueryContext) *elasti
 	//build the elastic client
 	esClient := e.buildClient(esQuery.DataSource)
 
+	from, _ := context.TimeRange.ParseFrom()
+	to, _ := context.TimeRange.ParseTo()
+
 	//build and execute search
+	indices := esQuery.DataSource.GetIndices(from, to)
+
+	e.log.Error("Elastic", "indices", indices)
+
 	searchService := esClient.Search().
-		Index("metrics-*"). // search in index //TODO set the correct index
+		//Index("metrics-*"). // search in index //TODO set the correct index
+		Index(indices...).
 		SearchType("count").
 		Size(0).     //unlimited results returned
 		Pretty(true) // pretty print request and response JSON
