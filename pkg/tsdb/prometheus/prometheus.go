@@ -79,11 +79,11 @@ func (e *PrometheusExecutor) Execute(ctx context.Context, queries tsdb.QuerySlic
 }
 
 func formatLegend(metric pmodel.Metric, query *PrometheusQuery) string {
-	reg, _ := regexp.Compile(`\{\{\s*(.+?)\s*\}\}`)
-
 	if query.LegendFormat == "" {
 		return metric.String()
 	}
+
+	reg, _ := regexp.Compile(`\{\{\s*(.+?)\s*\}\}`)
 
 	result := reg.ReplaceAllFunc([]byte(query.LegendFormat), func(in []byte) []byte {
 		labelName := strings.Replace(string(in), "{{", "", 1)

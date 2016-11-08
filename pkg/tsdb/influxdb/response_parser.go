@@ -3,6 +3,7 @@ package influxdb
 import (
 	"encoding/json"
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/grafana/grafana/pkg/tsdb"
@@ -11,17 +12,17 @@ import (
 
 type ResponseParser struct{}
 
-func (rp *ResponseParser) Parse(response *Response) *tsdb.QueryResult {
+func (rp *ResponseParser) Parse(response *Response, query *Query) *tsdb.QueryResult {
 	queryRes := tsdb.NewQueryResult()
 
 	for _, result := range response.Results {
-		queryRes.Series = append(queryRes.Series, rp.transformRows(result.Series, queryRes)...)
+		queryRes.Series = append(queryRes.Series, rp.transformRows(result.Series, queryRes, query)...)
 	}
 
 	return queryRes
 }
 
-func (rp *ResponseParser) transformRows(rows []Row, queryResult *tsdb.QueryResult) tsdb.TimeSeriesSlice {
+func (rp *ResponseParser) transformRows(rows []Row, queryResult *tsdb.QueryResult, query *Query) tsdb.TimeSeriesSlice {
 	var result tsdb.TimeSeriesSlice
 
 	for _, row := range rows {
@@ -38,7 +39,7 @@ func (rp *ResponseParser) transformRows(rows []Row, queryResult *tsdb.QueryResul
 				}
 			}
 			result = append(result, &tsdb.TimeSeries{
-				Name:   rp.formatSerieName(row, column),
+				Name:   rp.formatSerieName(row, column, query),
 				Points: points,
 			})
 		}
@@ -47,7 +48,63 @@ func (rp *ResponseParser) transformRows(rows []Row, queryResult *tsdb.QueryResul
 	return result
 }
 
-func (rp *ResponseParser) formatSerieName(row Row, column string) string {
+func (rp *ResponseParser) formatSerieName(row Row, column string, query *Query) string {
+	if query.Alias == "" {
+		return rp.buildSerieNameFromQuery(row, column)
+	}
+
+	reg, _ := regexp.Compile(`\$\s*(.+?)\s|`)
+
+	result := reg.ReplaceAllFunc([]byte(query.Alias), func(in []byte) []byte {
+		sin := string(in)
+
+		if strings.HasPrefix(sin, "m") || strings.HasPrefix(sin, "measurement") {
+			return []byte(query.Measurement)
+		}
+		if strings.HasPrefix(sin, "col") {
+			return []byte(column)
+		}
+
+		if !strings.HasPrefix(sin, "tag_") {
+			return in
+		}
+
+		//\$\s*(.+?)\s|
+		//|\[\[([\s*(.+?)*\s*]+?)\]\]
+
+		//labelName := strings.Replace(string(in), "{{", "", 1)
+		//labelName = strings.Replace(labelName, "}}", "", 1)
+		//labelName = strings.TrimSpace(labelName)
+		//if val, exists := metric[pmodel.LabelName(labelName)]; exists {
+		//	return []byte(val)
+		//}
+
+		return in
+	})
+
+	return string(result)
+}
+
+/*
+   var regex = /\$(\w+)|\[\[([\s\S]+?)\]\]/g;
+   var segments = series.name.split('.');
+
+   return this.alias.replace(regex, function(match, g1, g2) {
+     var group = g1 || g2;
+     var segIndex = parseInt(group, 10);
+
+     if (group === 'm' || group === 'measurement') { return series.name; }
+     if (group === 'col') { return series.columns[index]; }
+     if (!isNaN(segIndex)) { return segments[segIndex]; }
+     if (group.indexOf('tag_') !== 0) { return match; }
+
+     var tag = group.replace('tag_', '');
+     if (!series.tags) { return match; }
+     return series.tags[tag];
+   });
+*/
+
+func (rp *ResponseParser) buildSerieNameFromQuery(row Row, column string) string {
 	var tags []string
 
 	for k, v := range row.Tags {
