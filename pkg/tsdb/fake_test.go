@@ -7,7 +7,7 @@ type FakeExecutor struct {
 	resultsFn map[string]ResultsFn
 }
 
-type ResultsFn func(context *QueryContext) *QueryResult
+type ResultsFn func(timerange *TimeRange) *QueryResult
 
 func NewFakeExecutor(dsInfo *DataSourceInfo) *FakeExecutor {
 	return &FakeExecutor{
@@ -16,14 +16,14 @@ func NewFakeExecutor(dsInfo *DataSourceInfo) *FakeExecutor {
 	}
 }
 
-func (e *FakeExecutor) Execute(ctx context.Context, queries QuerySlice, context *QueryContext) *BatchResult {
+func (e *FakeExecutor) Execute(ctx context.Context, queries QuerySlice, timerange *TimeRange) *BatchResult {
 	result := &BatchResult{QueryResults: make(map[string]*QueryResult)}
 	for _, query := range queries {
 		if results, has := e.results[query.RefId]; has {
 			result.QueryResults[query.RefId] = results
 		}
 		if testFunc, has := e.resultsFn[query.RefId]; has {
-			result.QueryResults[query.RefId] = testFunc(context)
+			result.QueryResults[query.RefId] = testFunc(timerange)
 		}
 	}
 

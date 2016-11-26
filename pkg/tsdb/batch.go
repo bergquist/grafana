@@ -23,7 +23,7 @@ func newBatch(dsId int64, queries QuerySlice) *Batch {
 	}
 }
 
-func (bg *Batch) process(ctx context.Context, queryContext *QueryContext) {
+func (bg *Batch) process(ctx context.Context, queryContext *QueryContext, resultChan chan *BatchResult) {
 	executor := getExecutorFor(bg.Queries[0].DataSource)
 
 	if executor == nil {
@@ -35,13 +35,13 @@ func (bg *Batch) process(ctx context.Context, queryContext *QueryContext) {
 		for _, query := range bg.Queries {
 			result.QueryResults[query.RefId] = &QueryResult{Error: result.Error}
 		}
-		queryContext.ResultsChan <- result
+		resultChan <- result
 		return
 	}
 
-	res := executor.Execute(ctx, bg.Queries, queryContext)
+	res := executor.Execute(ctx, bg.Queries, queryContext.TimeRange)
 	bg.Done = true
-	queryContext.ResultsChan <- res
+	resultChan <- res
 }
 
 func (bg *Batch) addQuery(query *Query) {

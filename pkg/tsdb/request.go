@@ -13,12 +13,13 @@ func HandleRequest(ctx context.Context, req *Request) (*Response, error) {
 	}
 
 	currentlyExecuting := 0
+	resultChan := make(chan *BatchResult)
 
 	for _, batch := range batches {
 		if len(batch.Depends) == 0 {
 			currentlyExecuting += 1
 			batch.Started = true
-			go batch.process(ctx, context)
+			go batch.process(ctx, context, resultChan)
 		}
 	}
 
@@ -26,7 +27,7 @@ func HandleRequest(ctx context.Context, req *Request) (*Response, error) {
 
 	for currentlyExecuting != 0 {
 		select {
-		case batchResult := <-context.ResultsChan:
+		case batchResult := <-resultChan:
 			currentlyExecuting -= 1
 
 			response.BatchTimings = append(response.BatchTimings, batchResult.Timings)
@@ -48,7 +49,7 @@ func HandleRequest(ctx context.Context, req *Request) (*Response, error) {
 				if batch.allDependenciesAreIn(context) {
 					currentlyExecuting += 1
 					batch.Started = true
-					go batch.process(ctx, context)
+					go batch.process(ctx, context, resultChan)
 				}
 			}
 		case <-ctx.Done():

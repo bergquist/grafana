@@ -38,12 +38,12 @@ func init() {
 	HttpClient = tsdb.GetDefaultClient()
 }
 
-func (e *GraphiteExecutor) Execute(ctx context.Context, queries tsdb.QuerySlice, context *tsdb.QueryContext) *tsdb.BatchResult {
+func (e *GraphiteExecutor) Execute(ctx context.Context, queries tsdb.QuerySlice, timerange *tsdb.TimeRange) *tsdb.BatchResult {
 	result := &tsdb.BatchResult{}
 
 	formData := url.Values{
-		"from":          []string{"-" + formatTimeRange(context.TimeRange.From)},
-		"until":         []string{formatTimeRange(context.TimeRange.To)},
+		"from":          []string{"-" + formatTimeRange(timerange.From)},
+		"until":         []string{formatTimeRange(timerange.To)},
 		"format":        []string{"json"},
 		"maxDataPoints": []string{"500"},
 	}

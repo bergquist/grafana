@@ -23,9 +23,7 @@ func TestInfluxdbQueryBuilder(t *testing.T) {
 		tag1 := &Tag{Key: "hostname", Value: "server1", Operator: "="}
 		tag2 := &Tag{Key: "hostname", Value: "server2", Operator: "=", Condition: "OR"}
 
-		queryContext := &tsdb.QueryContext{
-			TimeRange: tsdb.NewTimeRange("5m", "now"),
-		}
+		queryContext := tsdb.NewTimeRange("5m", "now")
 
 		Convey("can build simple query", func() {
 			query := &Query{
@@ -59,12 +57,12 @@ func TestInfluxdbQueryBuilder(t *testing.T) {
 			query := Query{}
 			Convey("render from: 2h to now-1h", func() {
 				query := Query{}
-				queryContext := &tsdb.QueryContext{TimeRange: tsdb.NewTimeRange("2h", "now-1h")}
+				queryContext := tsdb.NewTimeRange("2h", "now-1h")
 				So(query.renderTimeFilter(queryContext), ShouldEqual, "time > now() - 2h and time < now() - 1h")
 			})
 
 			Convey("render from: 10m", func() {
-				queryContext := &tsdb.QueryContext{TimeRange: tsdb.NewTimeRange("10m", "now")}
+				queryContext := tsdb.NewTimeRange("10m", "now")
 				So(query.renderTimeFilter(queryContext), ShouldEqual, "time > now() - 10m")
 			})
 		})

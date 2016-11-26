@@ -139,17 +139,17 @@ func TestMetricQuery(t *testing.T) {
 		}
 
 		fakeExecutor := registerFakeExecutor()
-		fakeExecutor.HandleQuery("A", func(c *QueryContext) *QueryResult {
+		fakeExecutor.HandleQuery("A", func(c *TimeRange) *QueryResult {
 			time.Sleep(10 * time.Millisecond)
 			return &QueryResult{
 				Series: TimeSeriesSlice{
 					&TimeSeries{Name: "Ares"},
 				}}
 		})
-		fakeExecutor.HandleQuery("B", func(c *QueryContext) *QueryResult {
+		fakeExecutor.HandleQuery("B", func(c *TimeRange) *QueryResult {
 			return &QueryResult{
 				Series: TimeSeriesSlice{
-					&TimeSeries{Name: "Bres+" + c.Results["A"].Series[0].Name},
+					&TimeSeries{Name: "Bres+" + "Ares"},
 				}}
 		})
 

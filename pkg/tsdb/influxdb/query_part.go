@@ -16,7 +16,7 @@ type DefinitionParameters struct {
 }
 
 type QueryDefinition struct {
-	Renderer func(query *Query, queryContext *tsdb.QueryContext, part *QueryPart, innerExpr string) string
+	Renderer func(query *Query, timerange *tsdb.TimeRange, part *QueryPart, innerExpr string) string
 	Params   []DefinitionParameters
 }
 
@@ -86,16 +86,16 @@ func init() {
 	renders["alias"] = QueryDefinition{Renderer: aliasRenderer}
 }
 
-func fieldRenderer(query *Query, queryContext *tsdb.QueryContext, part *QueryPart, innerExpr string) string {
+func fieldRenderer(query *Query, timerange *tsdb.TimeRange, part *QueryPart, innerExpr string) string {
 	if part.Params[0] == "*" {
 		return "*"
 	}
 	return fmt.Sprintf(`"%s"`, part.Params[0])
 }
 
-func getDefinedInterval(query *Query, queryContext *tsdb.QueryContext) string {
+func getDefinedInterval(query *Query, timerange *tsdb.TimeRange) string {
 	setInterval := strings.Replace(strings.Replace(query.Interval, "<", "", 1), ">", "", 1)
-	defaultInterval := tsdb.CalculateInterval(queryContext.TimeRange)
+	defaultInterval := tsdb.CalculateInterval(timerange)
 
 	if strings.Contains(query.Interval, ">") {
 		parsedDefaultInterval, err := time.ParseDuration(defaultInterval)
@@ -109,13 +109,13 @@ func getDefinedInterval(query *Query, queryContext *tsdb.QueryContext) string {
 	return setInterval
 }
 
-func functionRenderer(query *Query, queryContext *tsdb.QueryContext, part *QueryPart, innerExpr string) string {
+func functionRenderer(query *Query, timerange *tsdb.TimeRange, part *QueryPart, innerExpr string) string {
 	for i, param := range part.Params {
 		if param == "$interval" {
 			if query.Interval != "" {
-				part.Params[i] = getDefinedInterval(query, queryContext)
+				part.Params[i] = getDefinedInterval(query, timerange)
 			} else {
-				part.Params[i] = tsdb.CalculateInterval(queryContext.TimeRange)
+				part.Params[i] = tsdb.CalculateInterval(timerange)
 			}
 		}
 	}
@@ -129,16 +129,16 @@ func functionRenderer(query *Query, queryContext *tsdb.QueryContext, part *Query
 	return fmt.Sprintf("%s(%s)", part.Type, params)
 }
 
-func suffixRenderer(query *Query, queryContext *tsdb.QueryContext, part *QueryPart, innerExpr string) string {
+func suffixRenderer(query *Query, timerange *tsdb.TimeRange, part *QueryPart, innerExpr string) string {
 	return fmt.Sprintf("%s %s", innerExpr, part.Params[0])
 }
 
-func aliasRenderer(query *Query, queryContext *tsdb.QueryContext, part *QueryPart, innerExpr string) string {
+func aliasRenderer(query *Query, timerange *tsdb.TimeRange, part *QueryPart, innerExpr string) string {
 	return fmt.Sprintf(`%s AS "%s"`, innerExpr, part.Params[0])
 }
 
-func (r QueryDefinition) Render(query *Query, queryContext *tsdb.QueryContext, part *QueryPart, innerExpr string) string {
-	return r.Renderer(query, queryContext, part, innerExpr)
+func (r QueryDefinition) Render(query *Query, timerange *tsdb.TimeRange, part *QueryPart, innerExpr string) string {
+	return r.Renderer(query, timerange, part, innerExpr)
 }
 
 func NewQueryPart(typ string, params []string) (*QueryPart, error) {
@@ -161,6 +161,6 @@ type QueryPart struct {
 	Params []string
 }
 
-func (qp *QueryPart) Render(query *Query, queryContext *tsdb.QueryContext, expr string) string {
-	return qp.Def.Renderer(query, queryContext, qp, expr)
+func (qp *QueryPart) Render(query *Query, timerange *tsdb.TimeRange, expr string) string {
+	return qp.Def.Renderer(query, timerange, qp, expr)
 }

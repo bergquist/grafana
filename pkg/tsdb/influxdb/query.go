@@ -14,21 +14,21 @@ var (
 	regexpMeasurementPattern *regexp.Regexp = regexp.MustCompile(`^\/.*\/$`)
 )
 
-func (query *Query) Build(queryContext *tsdb.QueryContext) (string, error) {
+func (query *Query) Build(timerange *tsdb.TimeRange) (string, error) {
 	if query.UseRawQuery && query.RawQuery != "" {
 		q := query.RawQuery
 
-		q = strings.Replace(q, "$timeFilter", query.renderTimeFilter(queryContext), 1)
-		q = strings.Replace(q, "$interval", tsdb.CalculateInterval(queryContext.TimeRange), 1)
+		q = strings.Replace(q, "$timeFilter", query.renderTimeFilter(timerange), 1)
+		q = strings.Replace(q, "$interval", tsdb.CalculateInterval(timerange), 1)
 
 		return q, nil
 	}
 
-	res := query.renderSelectors(queryContext)
+	res := query.renderSelectors(timerange)
 	res += query.renderMeasurement()
 	res += query.renderWhereClause()
-	res += query.renderTimeFilter(queryContext)
-	res += query.renderGroupBy(queryContext)
+	res += query.renderTimeFilter(timerange)
+	res += query.renderGroupBy(timerange)
 
 	return res, nil
 }
@@ -73,18 +73,18 @@ func (query *Query) renderTags() []string {
 	return res
 }
 
-func (query *Query) renderTimeFilter(queryContext *tsdb.QueryContext) string {
-	from := "now() - " + queryContext.TimeRange.From
+func (query *Query) renderTimeFilter(timerange *tsdb.TimeRange) string {
+	from := "now() - " + timerange.From
 	to := ""
 
-	if queryContext.TimeRange.To != "now" && queryContext.TimeRange.To != "" {
-		to = " and time < now() - " + strings.Replace(queryContext.TimeRange.To, "now-", "", 1)
+	if timerange.To != "now" && timerange.To != "" {
+		to = " and time < now() - " + strings.Replace(timerange.To, "now-", "", 1)
 	}
 
 	return fmt.Sprintf("time > %s%s", from, to)
 }
 
-func (query *Query) renderSelectors(queryContext *tsdb.QueryContext) string {
+func (query *Query) renderSelectors(timerange *tsdb.TimeRange) string {
 	res := "SELECT "
 
 	var selectors []string
@@ -92,7 +92,7 @@ func (query *Query) renderSelectors(queryContext *tsdb.QueryContext) string {
 
 		stk := ""
 		for _, s := range *sel {
-			stk = s.Render(query, queryContext, stk)
+			stk = s.Render(query, timerange, stk)
 		}
 		selectors = append(selectors, stk)
 	}
@@ -128,7 +128,7 @@ func (query *Query) renderWhereClause() string {
 	return res
 }
 
-func (query *Query) renderGroupBy(queryContext *tsdb.QueryContext) string {
+func (query *Query) renderGroupBy(timerange *tsdb.TimeRange) string {
 	groupBy := ""
 	for i, group := range query.GroupBy {
 		if i == 0 {
@@ -141,7 +141,7 @@ func (query *Query) renderGroupBy(queryContext *tsdb.QueryContext) string {
 			groupBy += " "
 		}
 
-		groupBy += group.Render(query, queryContext, "")
+		groupBy += group.Render(query, timerange, "")
 	}
 
 	return groupBy

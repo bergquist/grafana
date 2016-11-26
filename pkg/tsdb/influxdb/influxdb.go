@@ -41,15 +41,15 @@ func init() {
 	HttpClient = tsdb.GetDefaultClient()
 }
 
-func (e *InfluxDBExecutor) Execute(ctx context.Context, queries tsdb.QuerySlice, context *tsdb.QueryContext) *tsdb.BatchResult {
+func (e *InfluxDBExecutor) Execute(ctx context.Context, queries tsdb.QuerySlice, timerange *tsdb.TimeRange) *tsdb.BatchResult {
 	result := &tsdb.BatchResult{}
 
-	query, err := e.getQuery(queries, context)
+	query, err := e.getQuery(queries)
 	if err != nil {
 		return result.WithError(err)
 	}
 
-	rawQuery, err := query.Build(context)
+	rawQuery, err := query.Build(timerange)
 	if err != nil {
 		return result.WithError(err)
 	}
@@ -92,7 +92,7 @@ func (e *InfluxDBExecutor) Execute(ctx context.Context, queries tsdb.QuerySlice,
 	return result
 }
 
-func (e *InfluxDBExecutor) getQuery(queries tsdb.QuerySlice, context *tsdb.QueryContext) (*Query, error) {
+func (e *InfluxDBExecutor) getQuery(queries tsdb.QuerySlice) (*Query, error) {
 	for _, v := range queries {
 
 		query, err := e.QueryParser.Parse(v.Model, e.DataSourceInfo)

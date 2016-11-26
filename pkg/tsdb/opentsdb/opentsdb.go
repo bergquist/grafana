@@ -41,13 +41,13 @@ func init() {
 	HttpClient = tsdb.GetDefaultClient()
 }
 
-func (e *OpenTsdbExecutor) Execute(ctx context.Context, queries tsdb.QuerySlice, queryContext *tsdb.QueryContext) *tsdb.BatchResult {
+func (e *OpenTsdbExecutor) Execute(ctx context.Context, queries tsdb.QuerySlice, timerange *tsdb.TimeRange) *tsdb.BatchResult {
 	result := &tsdb.BatchResult{}
 
 	var tsdbQuery OpenTsdbQuery
 
-	tsdbQuery.Start = queryContext.TimeRange.GetFromAsMsEpoch()
-	tsdbQuery.End = queryContext.TimeRange.GetToAsMsEpoch()
+	tsdbQuery.Start = timerange.GetFromAsMsEpoch()
+	tsdbQuery.End = timerange.GetToAsMsEpoch()
 
 	for _, query := range queries {
 		metric := e.buildMetric(query)

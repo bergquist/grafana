@@ -47,7 +47,7 @@ func (e *PrometheusExecutor) getClient() (prometheus.QueryAPI, error) {
 	return prometheus.NewQueryAPI(client), nil
 }
 
-func (e *PrometheusExecutor) Execute(ctx context.Context, queries tsdb.QuerySlice, queryContext *tsdb.QueryContext) *tsdb.BatchResult {
+func (e *PrometheusExecutor) Execute(ctx context.Context, queries tsdb.QuerySlice, timerange *tsdb.TimeRange) *tsdb.BatchResult {
 	result := &tsdb.BatchResult{}
 
 	client, err := e.getClient()
@@ -55,7 +55,7 @@ func (e *PrometheusExecutor) Execute(ctx context.Context, queries tsdb.QuerySlic
 		return result.WithError(err)
 	}
 
-	query, err := parseQuery(queries, queryContext)
+	query, err := parseQuery(queries, timerange)
 	if err != nil {
 		return result.WithError(err)
 	}
@@ -99,7 +99,7 @@ func formatLegend(metric pmodel.Metric, query *PrometheusQuery) string {
 	return string(result)
 }
 
-func parseQuery(queries tsdb.QuerySlice, queryContext *tsdb.QueryContext) (*PrometheusQuery, error) {
+func parseQuery(queries tsdb.QuerySlice, timerange *tsdb.TimeRange) (*PrometheusQuery, error) {
 	queryModel := queries[0]
 
 	expr, err := queryModel.Model.Get("expr").String()
@@ -114,12 +114,12 @@ func parseQuery(queries tsdb.QuerySlice, queryContext *tsdb.QueryContext) (*Prom
 
 	format := queryModel.Model.Get("legendFormat").MustString("")
 
-	start, err := queryContext.TimeRange.ParseFrom()
+	start, err := timerange.ParseFrom()
 	if err != nil {
 		return nil, err
 	}
 
-	end, err := queryContext.TimeRange.ParseTo()
+	end, err := timerange.ParseTo()
 	if err != nil {
 		return nil, err
 	}
