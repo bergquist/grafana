@@ -63,20 +63,17 @@ func (e *GraphiteExecutor) Execute(ctx context.Context, queries tsdb.QuerySlice,
 
 	req, err := e.createRequest(formData)
 	if err != nil {
-		result.Error = err
-		return result
+		return result.WithError(err)
 	}
 
 	res, err := ctxhttp.Do(ctx, HttpClient, req)
 	if err != nil {
-		result.Error = err
-		return result
+		return result.WithError(err)
 	}
 
 	data, err := e.parseResponse(res)
 	if err != nil {
-		result.Error = err
-		return result
+		return result.WithError(err)
 	}
 
 	result.QueryResults = make(map[string]*tsdb.QueryResult)

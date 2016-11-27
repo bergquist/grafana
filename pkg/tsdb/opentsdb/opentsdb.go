@@ -61,14 +61,12 @@ func (e *OpenTsdbExecutor) Execute(ctx context.Context, queries tsdb.QuerySlice,
 
 	req, err := e.createRequest(tsdbQuery)
 	if err != nil {
-		result.Error = err
-		return result
+		return result.WithError(err)
 	}
 
 	res, err := ctxhttp.Do(ctx, HttpClient, req)
 	if err != nil {
-		result.Error = err
-		return result
+		return result.WithError(err)
 	}
 
 	queryResult, err := e.parseResponse(tsdbQuery, res)
