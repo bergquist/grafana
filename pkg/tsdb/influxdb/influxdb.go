@@ -11,19 +11,20 @@ import (
 	"golang.org/x/net/context/ctxhttp"
 
 	"github.com/grafana/grafana/pkg/log"
+	"github.com/grafana/grafana/pkg/models"
 	"github.com/grafana/grafana/pkg/setting"
 	"github.com/grafana/grafana/pkg/tsdb"
 )
 
 type InfluxDBExecutor struct {
-	*tsdb.DataSourceInfo
+	*models.DataSource
 	QueryParser    *InfluxdbQueryParser
 	ResponseParser *ResponseParser
 }
 
-func NewInfluxDBExecutor(dsInfo *tsdb.DataSourceInfo) tsdb.Executor {
+func NewInfluxDBExecutor(dsInfo *models.DataSource) tsdb.Executor {
 	return &InfluxDBExecutor{
-		DataSourceInfo: dsInfo,
+		DataSource:     dsInfo,
 		QueryParser:    &InfluxdbQueryParser{},
 		ResponseParser: &ResponseParser{},
 	}
@@ -95,7 +96,7 @@ func (e *InfluxDBExecutor) Execute(ctx context.Context, queries tsdb.QuerySlice,
 func (e *InfluxDBExecutor) getQuery(queries tsdb.QuerySlice) (*Query, error) {
 	for _, v := range queries {
 
-		query, err := e.QueryParser.Parse(v.Model, e.DataSourceInfo)
+		query, err := e.QueryParser.Parse(v.Model, e.DataSource)
 		if err != nil {
 			return nil, err
 		}

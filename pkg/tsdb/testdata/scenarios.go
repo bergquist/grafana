@@ -12,7 +12,7 @@ import (
 	"github.com/grafana/grafana/pkg/tsdb"
 )
 
-type ScenarioHandler func(query *tsdb.Query, context *tsdb.QueryContext) *tsdb.QueryResult
+type ScenarioHandler func(query *tsdb.Query, timerange *tsdb.TimeRange) *tsdb.QueryResult
 
 type Scenario struct {
 	Id          string          `json:"id"`
@@ -34,9 +34,9 @@ func init() {
 		Id:   "random_walk",
 		Name: "Random Walk",
 
-		Handler: func(query *tsdb.Query, context *tsdb.QueryContext) *tsdb.QueryResult {
-			timeWalkerMs := context.TimeRange.GetFromAsMsEpoch()
-			to := context.TimeRange.GetToAsMsEpoch()
+		Handler: func(query *tsdb.Query, timerange *tsdb.TimeRange) *tsdb.QueryResult {
+			timeWalkerMs := timerange.GetFromAsMsEpoch()
+			to := timerange.GetToAsMsEpoch()
 
 			series := newSeriesForQuery(query)
 
@@ -61,7 +61,7 @@ func init() {
 	registerScenario(&Scenario{
 		Id:   "no_data_points",
 		Name: "No Data Points",
-		Handler: func(query *tsdb.Query, context *tsdb.QueryContext) *tsdb.QueryResult {
+		Handler: func(query *tsdb.Query, timerange *tsdb.TimeRange) *tsdb.QueryResult {
 			return tsdb.NewQueryResult()
 		},
 	})
@@ -69,11 +69,11 @@ func init() {
 	registerScenario(&Scenario{
 		Id:   "datapoints_outside_range",
 		Name: "Datapoints Outside Range",
-		Handler: func(query *tsdb.Query, context *tsdb.QueryContext) *tsdb.QueryResult {
+		Handler: func(query *tsdb.Query, timerange *tsdb.TimeRange) *tsdb.QueryResult {
 			queryRes := tsdb.NewQueryResult()
 
 			series := newSeriesForQuery(query)
-			outsideTime := context.TimeRange.MustGetFrom().Add(-1*time.Hour).Unix() * 1000
+			outsideTime := timerange.MustGetFrom().Add(-1*time.Hour).Unix() * 1000
 
 			series.Points = append(series.Points, tsdb.NewTimePoint(null.FloatFrom(10), float64(outsideTime)))
 			queryRes.Series = append(queryRes.Series, series)
@@ -86,7 +86,7 @@ func init() {
 		Id:          "csv_metric_values",
 		Name:        "CSV Metric Values",
 		StringInput: "1,20,90,30,5,0",
-		Handler: func(query *tsdb.Query, context *tsdb.QueryContext) *tsdb.QueryResult {
+		Handler: func(query *tsdb.Query, timerange *tsdb.TimeRange) *tsdb.QueryResult {
 			queryRes := tsdb.NewQueryResult()
 
 			stringInput := query.Model.Get("stringInput").MustString()
@@ -105,8 +105,8 @@ func init() {
 			}
 
 			series := newSeriesForQuery(query)
-			startTime := context.TimeRange.GetFromAsMsEpoch()
-			endTime := context.TimeRange.GetToAsMsEpoch()
+			startTime := timerange.GetFromAsMsEpoch()
+			endTime := timerange.GetToAsMsEpoch()
 			step := (endTime - startTime) / int64(len(values)-1)
 
 			for _, val := range values {

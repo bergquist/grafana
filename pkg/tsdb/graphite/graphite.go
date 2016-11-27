@@ -14,15 +14,16 @@ import (
 	"golang.org/x/net/context/ctxhttp"
 
 	"github.com/grafana/grafana/pkg/log"
+	"github.com/grafana/grafana/pkg/models"
 	"github.com/grafana/grafana/pkg/setting"
 	"github.com/grafana/grafana/pkg/tsdb"
 )
 
 type GraphiteExecutor struct {
-	*tsdb.DataSourceInfo
+	*models.DataSource
 }
 
-func NewGraphiteExecutor(dsInfo *tsdb.DataSourceInfo) tsdb.Executor {
+func NewGraphiteExecutor(dsInfo *models.DataSource) tsdb.Executor {
 	return &GraphiteExecutor{dsInfo}
 }
 

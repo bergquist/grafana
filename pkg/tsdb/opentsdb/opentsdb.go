@@ -17,15 +17,16 @@ import (
 	"gopkg.in/guregu/null.v3"
 
 	"github.com/grafana/grafana/pkg/log"
+	"github.com/grafana/grafana/pkg/models"
 	"github.com/grafana/grafana/pkg/setting"
 	"github.com/grafana/grafana/pkg/tsdb"
 )
 
 type OpenTsdbExecutor struct {
-	*tsdb.DataSourceInfo
+	*models.DataSource
 }
 
-func NewOpenTsdbExecutor(dsInfo *tsdb.DataSourceInfo) tsdb.Executor {
+func NewOpenTsdbExecutor(dsInfo *models.DataSource) tsdb.Executor {
 	return &OpenTsdbExecutor{dsInfo}
 }
 
