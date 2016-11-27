@@ -19,7 +19,7 @@ func TestDataSourceProxy(t *testing.T) {
 		ds := m.DataSource{Url: "htttp://graphite:8080", Type: m.DS_GRAPHITE}
 		targetUrl, err := url.Parse(ds.Url)
 		proxy := NewReverseProxy(&ds, "/render", targetUrl)
-		proxy.Transport, err = DataProxyTransport(&ds)
+		proxy.Transport, err = ds.CreateTransport()
 		So(err, ShouldBeNil)
 
 		transport, ok := proxy.Transport.(*http.Transport)
@@ -83,7 +83,7 @@ func TestDataSourceProxy(t *testing.T) {
 		}
 		targetUrl, err := url.Parse(ds.Url)
 		proxy := NewReverseProxy(&ds, "", targetUrl)
-		proxy.Transport, err = DataProxyTransport(&ds)
+		proxy.Transport, err = ds.CreateTransport()
 		So(err, ShouldBeNil)
 
 		transport, ok := proxy.Transport.(*http.Transport)

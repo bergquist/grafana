@@ -169,8 +169,8 @@ func TestMetricQuery(t *testing.T) {
 
 func registerFakeExecutor() *FakeExecutor {
 	executor := NewFakeExecutor(nil)
-	RegisterExecutor("test", func(dsInfo *models.DataSource) Executor {
-		return executor
+	RegisterExecutor("test", func(dsInfo *models.DataSource) (Executor, error) {
+		return executor, nil
 	})
 
 	return executor

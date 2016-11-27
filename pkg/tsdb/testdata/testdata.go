@@ -13,11 +13,11 @@ type TestDataExecutor struct {
 	log log.Logger
 }
 
-func NewTestDataExecutor(dsInfo *models.DataSource) tsdb.Executor {
+func NewTestDataExecutor(dsInfo *models.DataSource) (tsdb.Executor, error) {
 	return &TestDataExecutor{
 		DataSource: dsInfo,
 		log:        log.New("tsdb.testdata"),
-	}
+	}, nil
 }
 
 func init() {

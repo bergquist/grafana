@@ -20,26 +20,30 @@ type InfluxDBExecutor struct {
 	*models.DataSource
 	QueryParser    *InfluxdbQueryParser
 	ResponseParser *ResponseParser
+	HttpClient     *http.Client
 }
 
-func NewInfluxDBExecutor(dsInfo *models.DataSource) tsdb.Executor {
+func NewInfluxDBExecutor(dsInfo *models.DataSource) (tsdb.Executor, error) {
+	httpClient, err := dsInfo.CreateClient()
+	if err != nil {
+		return nil, err
+	}
+
 	return &InfluxDBExecutor{
 		DataSource:     dsInfo,
 		QueryParser:    &InfluxdbQueryParser{},
 		ResponseParser: &ResponseParser{},
-	}
+		HttpClient:     httpClient,
+	}, nil
 }
 
 var (
-	glog       log.Logger
-	HttpClient *http.Client
+	glog log.Logger
 )
 
 func init() {
 	glog = log.New("tsdb.influxdb")
 	tsdb.RegisterExecutor("influxdb", NewInfluxDBExecutor)
-
-	HttpClient = tsdb.GetDefaultClient()
 }
 
 func (e *InfluxDBExecutor) Execute(ctx context.Context, queries tsdb.QuerySlice, timerange *tsdb.TimeRange) *tsdb.BatchResult {
@@ -64,7 +68,7 @@ func (e *InfluxDBExecutor) Execute(ctx context.Context, queries tsdb.QuerySlice,
 		return result.WithError(err)
 	}
 
-	resp, err := ctxhttp.Do(ctx, HttpClient, req)
+	resp, err := ctxhttp.Do(ctx, e.HttpClient, req)
 	if err != nil {
 		return result.WithError(err)
 	}

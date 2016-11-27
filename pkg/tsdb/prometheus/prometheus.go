@@ -20,8 +20,8 @@ type PrometheusExecutor struct {
 	*models.DataSource
 }
 
-func NewPrometheusExecutor(dsInfo *models.DataSource) tsdb.Executor {
-	return &PrometheusExecutor{dsInfo}
+func NewPrometheusExecutor(dsInfo *models.DataSource) (tsdb.Executor, error) {
+	return &PrometheusExecutor{DataSource: dsInfo}, nil
 }
 
 var (
@@ -36,8 +36,14 @@ func init() {
 }
 
 func (e *PrometheusExecutor) getClient() (prometheus.QueryAPI, error) {
+	transport, err := e.CreateTransport()
+	if err != nil {
+		return nil, err
+	}
+
 	cfg := prometheus.Config{
-		Address: e.DataSource.Url,
+		Address:   e.DataSource.Url,
+		Transport: transport,
 	}
 
 	client, err := prometheus.New(cfg)

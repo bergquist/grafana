@@ -1,8 +1,13 @@
 package models
 
 import (
+	"crypto/tls"
+	"crypto/x509"
 	"errors"
+	"net"
 	"time"
+
+	"net/http"
 
 	"github.com/grafana/grafana/pkg/components/securejsondata"
 	"github.com/grafana/grafana/pkg/components/simplejson"
@@ -51,6 +56,62 @@ type DataSource struct {
 
 	Created time.Time
 	Updated time.Time
+}
+
+func (ds *DataSource) CreateClient() (*http.Client, error) {
+	tr, err := ds.CreateTransport()
+	if err != nil {
+		return nil, err
+	}
+
+	return &http.Client{
+		Timeout:   time.Duration(30 * time.Second),
+		Transport: tr,
+	}, nil
+}
+
+func (ds *DataSource) CreateTransport() (*http.Transport, error) {
+	transport := &http.Transport{
+		TLSClientConfig: &tls.Config{
+			InsecureSkipVerify: true,
+		},
+		Proxy: http.ProxyFromEnvironment,
+		Dial: (&net.Dialer{
+			Timeout:   30 * time.Second,
+			KeepAlive: 30 * time.Second,
+		}).Dial,
+		MaxIdleConns:          100,
+		IdleConnTimeout:       90 * time.Second,
+		ExpectContinueTimeout: 1 * time.Second,
+		TLSHandshakeTimeout:   10 * time.Second,
+	}
+
+	var tlsAuth, tlsAuthWithCACert bool
+	if ds.JsonData != nil {
+		tlsAuth = ds.JsonData.Get("tlsAuth").MustBool(false)
+		tlsAuthWithCACert = ds.JsonData.Get("tlsAuthWithCACert").MustBool(false)
+	}
+
+	if tlsAuth {
+		transport.TLSClientConfig.InsecureSkipVerify = false
+
+		decrypted := ds.SecureJsonData.Decrypt()
+
+		if tlsAuthWithCACert && len(decrypted["tlsCACert"]) > 0 {
+			caPool := x509.NewCertPool()
+			ok := caPool.AppendCertsFromPEM([]byte(decrypted["tlsCACert"]))
+			if ok {
+				transport.TLSClientConfig.RootCAs = caPool
+			}
+		}
+
+		cert, err := tls.X509KeyPair([]byte(decrypted["tlsClientCert"]), []byte(decrypted["tlsClientKey"]))
+		if err != nil {
+			return nil, err
+		}
+		transport.TLSClientConfig.Certificates = []tls.Certificate{cert}
+	}
+	return transport, nil
 }
 
 var knownDatasourcePlugins map[string]bool = map[string]bool{

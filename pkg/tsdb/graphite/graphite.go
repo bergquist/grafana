@@ -21,22 +21,25 @@ import (
 
 type GraphiteExecutor struct {
 	*models.DataSource
+	HttpClient *http.Client
 }
 
-func NewGraphiteExecutor(dsInfo *models.DataSource) tsdb.Executor {
-	return &GraphiteExecutor{dsInfo}
+func NewGraphiteExecutor(dsInfo *models.DataSource) (tsdb.Executor, error) {
+	httpClient, err := dsInfo.CreateClient()
+	if err != nil {
+		return nil, err
+	}
+
+	return &GraphiteExecutor{DataSource: dsInfo, HttpClient: httpClient}, nil
 }
 
 var (
-	glog       log.Logger
-	HttpClient *http.Client
+	glog log.Logger
 )
 
 func init() {
 	glog = log.New("tsdb.graphite")
 	tsdb.RegisterExecutor("graphite", NewGraphiteExecutor)
-
-	HttpClient = tsdb.GetDefaultClient()
 }
 
 func (e *GraphiteExecutor) Execute(ctx context.Context, queries tsdb.QuerySlice, timerange *tsdb.TimeRange) *tsdb.BatchResult {
@@ -66,7 +69,7 @@ func (e *GraphiteExecutor) Execute(ctx context.Context, queries tsdb.QuerySlice,
 		return result.WithError(err)
 	}
 
-	res, err := ctxhttp.Do(ctx, HttpClient, req)
+	res, err := ctxhttp.Do(ctx, e.HttpClient, req)
 	if err != nil {
 		return result.WithError(err)
 	}

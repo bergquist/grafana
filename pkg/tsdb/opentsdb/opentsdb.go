@@ -24,22 +24,25 @@ import (
 
 type OpenTsdbExecutor struct {
 	*models.DataSource
+	HttpClient *http.Client
 }
 
-func NewOpenTsdbExecutor(dsInfo *models.DataSource) tsdb.Executor {
-	return &OpenTsdbExecutor{dsInfo}
+func NewOpenTsdbExecutor(dsInfo *models.DataSource) (tsdb.Executor, error) {
+	httpClient, err := dsInfo.CreateClient()
+	if err != nil {
+		return nil, err
+	}
+
+	return &OpenTsdbExecutor{DataSource: dsInfo, HttpClient: httpClient}, nil
 }
 
 var (
-	plog       log.Logger
-	HttpClient *http.Client
+	plog log.Logger
 )
 
 func init() {
 	plog = log.New("tsdb.opentsdb")
 	tsdb.RegisterExecutor("opentsdb", NewOpenTsdbExecutor)
-
-	HttpClient = tsdb.GetDefaultClient()
 }
 
 func (e *OpenTsdbExecutor) Execute(ctx context.Context, queries tsdb.QuerySlice, timerange *tsdb.TimeRange) *tsdb.BatchResult {
@@ -64,7 +67,7 @@ func (e *OpenTsdbExecutor) Execute(ctx context.Context, queries tsdb.QuerySlice,
 		return result.WithError(err)
 	}
 
-	res, err := ctxhttp.Do(ctx, HttpClient, req)
+	res, err := ctxhttp.Do(ctx, e.HttpClient, req)
 	if err != nil {
 		return result.WithError(err)
 	}
