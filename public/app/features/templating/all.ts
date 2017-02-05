@@ -8,6 +8,7 @@ import {DatasourceVariable} from './datasource_variable';
 import {CustomVariable} from './custom_variable';
 import {ConstantVariable} from './constant_variable';
 import {AdhocVariable} from './adhoc_variable';
+import {GlobalVariable} from './global_variable';
 
 export {
   VariableSrv,
@@ -17,4 +18,5 @@ export {
   CustomVariable,
   ConstantVariable,
   AdhocVariable,
+  GlobalVariable,
 }

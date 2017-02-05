@@ -81,6 +81,8 @@ export class VariableSrv {
   }
 
   createVariableFromModel(model) {
+    //insert support for loading global templates
+    console.log('creating variable. model: ', model, ' variableTypes: ', variableTypes);
     var ctor = variableTypes[model.type].ctor;
     if (!ctor) {
       throw "Unable to find variable constructor for " + model.type;

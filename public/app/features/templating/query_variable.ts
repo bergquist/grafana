@@ -66,6 +66,7 @@ export class QueryVariable implements Variable {
   }
 
   setValue(option){
+    console.log('set query value: ', option);
     return this.variableSrv.setOptionAsCurrent(this, option);
   }
 

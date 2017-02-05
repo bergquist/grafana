@@ -228,6 +228,10 @@ func (hs *HttpServer) registerRoutes() {
 			r.Post("/import", bind(dtos.ImportDashboardCommand{}), wrap(ImportDashboard))
 		})
 
+		r.Group("/templates", func() {
+			r.Get("/:id", wrap(GetTemplate))
+		})
+
 		// Dashboard snapshots
 		r.Group("/dashboard/snapshots", func() {
 			r.Get("/", wrap(SearchDashboardSnapshots))
