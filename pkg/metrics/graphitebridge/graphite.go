@@ -13,7 +13,7 @@
 
 // Package graphite provides a bridge to push Prometheus metrics to a Graphite
 // server.
-package graphitepublisher
+package graphitebridge
 
 import (
 	"bufio"

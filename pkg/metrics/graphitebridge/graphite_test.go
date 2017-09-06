@@ -1,4 +1,4 @@
-package graphitepublisher
+package graphitebridge
 
 import (
 	"bufio"
