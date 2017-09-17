@@ -10,7 +10,7 @@ export class ResponseTransformer {
     if (settings.format === "table") {
       result.push(this.transformMetricDataToTable(response));
     } else if (settings.format === "heatmap") {
-      result.push(this.transFormToHistogramOverTime(response));
+      Array.prototype.push.apply(result,this.transFormToHistogramOverTime(response));
     } else {
       for (let metricData of response) {
         result.push(this.transformMetricData(metricData, settings, start, end));
@@ -18,9 +18,8 @@ export class ResponseTransformer {
     }
   }
 
-  transFormToHistogramOverTime(result: Array<any>) {
-    //sort
-    result.sort((r1, r2) => {
+  transFormToHistogramOverTime(response: Array<any>) {
+    response.sort((r1, r2) => {
       //bail if not integer. might happen with bad queries
       var le1 = parseInt(r1.metric.le);
       var le2 = parseInt(r2.metric.le);
@@ -36,8 +35,6 @@ export class ResponseTransformer {
       return 0;
     });
 
-    console.log('post sort', result);
-
     /*      t1 == timestamp1, t2 == timestamp2 etc.
 
             t1  t2  t3          t1  t2  t3
@@ -47,17 +44,30 @@ export class ResponseTransformer {
 
     */
 
-    for (let serie of result) {
-      var decrementer = 0;
-
-      for (let bucket of serie.values) {
-
+    var result = [];
+    for (let serie in response) {
+      var obj = {
+        target: response[serie]["metric"]["le"],
+        datapoints: [],
+      };
+      for (let pos in response[serie].values) {
+        var dp = response[serie].values[pos];
+        let timestamp = parseFloat(dp[0]) * 1000;
+        var ndp;
+        if (serie === "0") {
+          ndp = [ parseInt(dp[1]), timestamp ];
+          obj.datapoints.push(ndp);
+        } else {
+          var prevDp = response[parseInt(serie)-1].values[pos];
+          ndp = [ dp[1] - prevDp[1], timestamp ];
+          obj.datapoints.push(ndp);
+        }
       }
+
+      result.push(obj);
     }
 
-    //decount
-
-    //set name to le
+    return result;
   }
 
   renderTemplate(aliasPattern, aliasData) {

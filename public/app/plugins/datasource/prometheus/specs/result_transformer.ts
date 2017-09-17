@@ -26,20 +26,22 @@ describe('ResultTransformer', function() {
         values: [ [1443454528.000, "25"], [1443454528.000, "10"] ],
       }
     ];
-    var result = [ {
+    var want = [ {
         target: "10",
-        datapoints: [ [1443454528.000, 10], [1443454528.000, 10] ],
+        datapoints: [ [10, 1443454528000], [10, 1443454528000] ],
       }, {
         target: "20",
-        datapoints: [ [1443454528.000, 10], [1443454528.000, 0] ],
+        datapoints: [ [10, 1443454528000], [0, 1443454528000] ],
       }, {
         target: "30",
-        datapoints: [ [1443454528.000, 5], [1443454528.000, 0] ],
+        datapoints: [ [5, 1443454528000], [0, 1443454528000] ],
       }
     ];
 
     it('label_values(resource) should generate label search query', function() {
-      expect(transformer.transform(result, response, { format: "heatmap" }, start, end)).to.equal(response);
+      var got = transformer.transFormToHistogramOverTime(response);
+
+      expect(got).to.eql(want);
     });
   });
 });
