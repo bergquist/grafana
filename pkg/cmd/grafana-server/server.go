@@ -25,7 +25,6 @@ import (
 	"github.com/grafana/grafana/pkg/setting"
 	"github.com/grafana/grafana/pkg/social"
 	tsdbplugins "github.com/grafana/grafana/pkg/tsdb/plugins"
-	//tsdbplugins "github.com/grafana/grafana/pkg/tsdb/plugins"
 )
 
 func NewGrafanaServer() models.GrafanaServer {
@@ -62,13 +61,12 @@ func (g *GrafanaServerImpl) Start() {
 	social.NewOAuthService()
 	eventpublisher.Init()
 	plugins.Init()
-	client, err := tsdbplugins.Init()
-	defer client.Kill()
-
+	pluginClient, err := tsdbplugins.Init()
 	if err != nil {
 		g.log.Error("failed to start plugins", "error", err)
 		g.Shutdown(1, "Startup failed")
 	}
+	defer pluginClient.Kill()
 
 	// init alerting
 	if setting.AlertingEnabled && setting.ExecuteAlerts {
