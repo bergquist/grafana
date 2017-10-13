@@ -20,6 +20,7 @@ export class PromCompleter {
     let token = session.getTokenAt(pos.row, pos.column);
 
     var metricName;
+    console.log('token: ', token);
     switch (token.type) {
       case 'entity.name.tag':
         metricName = this.findMetricName(session, pos.row, pos.column);
@@ -60,7 +61,6 @@ export class PromCompleter {
           callback(null, this.labelValueCache[metricName][labelName]);
           return;
         }
-
         return this.getLabelNameAndValueForMetric(metricName).then(result => {
           var labelValues = this.transformToCompletions(
             _.uniq(result.map(r => {
@@ -71,18 +71,38 @@ export class PromCompleter {
           this.labelValueCache[metricName][labelName] = labelValues;
           callback(null, labelValues);
         });
+      case 'paren.lbrack':
+        console.log('inside!');
+        var vectors = [];
+        // for (let unit of ['s', 'm', 'h']) {
+        //   for (let value of [1,5,10,30]) {
+        //     vectors.push({caption: value+unit, value: '['+value+unit, meta: 'range vector'});
+        //   }
+        // }
+        vectors.push({ caption: '$__interval', value: '[$__interval', meta: 'range vector'});
+        vectors.push({ caption: '$__interval_ms', value: '[$__interval_ms', meta: 'range vector'});
+        console.log(vectors);
+        callback(null, vectors);
+        return;
     }
 
-    if (prefix === '[') {
-      var vectors = [];
-      for (let unit of ['s', 'm', 'h']) {
-        for (let value of [1,5,10,30]) {
-         vectors.push({caption: value+unit, value: '['+value+unit, meta: 'range vector'});
-        }
-      }
-      callback(null, vectors);
-      return;
-    }
+    //if (prefix === '[') {
+    console.log('token: ', token);
+    console.log('prefix', prefix);
+    console.log(token.value === '[');
+    // if (token.value === '[') {
+    //   console.log('inside bro');
+    //   var vectors = [];
+    //   for (let unit of ['s', 'm', 'h']) {
+    //     for (let value of [1,5,10,30]) {
+    //      vectors.push({caption: value+unit, value: '['+value+unit, meta: 'range vector'});
+    //     }
+    //   }
+    //   vectors.push({caption: '$__interval', value: '[$__interval', meta: 'range vector'});
+    //   vectors.push({caption: '$__interval_ms', value: '[$__interval_ms', meta: 'range vector'});
+    //   callback(null, vectors);
+    //   return;
+    // }
 
     var query = prefix;
 

@@ -49,15 +49,21 @@ ace.define("ace/mode/prometheus_highlight_rules", ["require", "exports", "module
         regex: "\\+|\\-|\\*|\\/|%|\\^|=|==|!=|<=|>=|<|>|=\\~|!\\~"
       }, {
         token: "paren.lparen",
-        regex: "[[(]"
+        regex: "[(]"
+      }, {
+        token: "paren.lbrack",
+        regex: "[[]"
       }, {
         token: "paren.lparen",
         regex: "{",
         next: "start-label-matcher"
       }, {
         token: "paren.rparen",
-        regex: "[\\])]"
+        regex: "[\\)]"
       }, {
+        token: "paren.rbrack",
+        regex: "[\\]]"
+      },{
         token: "paren.rparen",
         regex: "}"
       }, {
