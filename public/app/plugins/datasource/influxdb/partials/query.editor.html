@@ -1,9 +1,15 @@
 <query-editor-row query-ctrl="ctrl" can-collapse="true" has-text-edit-mode="true">
 
 	<div ng-if="ctrl.target.rawQuery">
+    
     <div class="gf-form">
-      <textarea rows="3" class="gf-form-input" ng-model="ctrl.target.query" spellcheck="false" placeholder="InfuxDB Query" ng-model-onblur ng-change="ctrl.refresh()"></textarea>
+      <code-editor content="ctrl.target.query" datasource="ctrl.datasource" on-change="ctrl.refreshMetricData()"
+        get-completer="ctrl.getCompleter()" data-mode="influxdb" code-editor-focus="ctrl.isLastQuery">
+      </code-editor>
     </div>
+    <!-- <div class="gf-form">
+      <textarea rows="3" class="gf-form-input" ng-model="ctrl.target.query" spellcheck="false" placeholder="InfuxDB Query" ng-model-onblur ng-change="ctrl.refresh()"></textarea>
+    </div> -->
     <div class="gf-form-inline">
       <div class="gf-form">
         <label class="gf-form-label query-keyword">FORMAT AS</label>

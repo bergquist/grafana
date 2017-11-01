@@ -2,10 +2,12 @@
 
 import angular from 'angular';
 import _ from 'lodash';
+import {InfluxdbCompleter} from './completer';
 import InfluxQueryBuilder from './query_builder';
 import InfluxQuery from './influx_query';
 import queryPart from './query_part';
 import {QueryCtrl} from 'app/plugins/sdk';
+import './mode-influxdb';
 
 export class InfluxQueryCtrl extends QueryCtrl {
   static templateUrl = 'partials/query.editor.html';
@@ -26,6 +28,7 @@ export class InfluxQueryCtrl extends QueryCtrl {
     super($scope, $injector);
 
     this.target = this.target;
+    this.target.rawQuery = true;
     this.queryModel = new InfluxQuery(this.target, templateSrv, this.panel.scopedVars);
     this.queryBuilder = new InfluxQueryBuilder(this.target, this.datasource.database);
     this.groupBySegment = this.uiSegmentSrv.newPlusButton();
@@ -63,6 +66,14 @@ export class InfluxQueryCtrl extends QueryCtrl {
     this.fixTagSegments();
     this.buildSelectMenu();
     this.removeTagFilterSegment = uiSegmentSrv.newSegment({fake: true, value: '-- remove tag filter --'});
+  }
+
+  getCompleter() {
+    return new InfluxdbCompleter();
+  }
+
+  refreshMetricData() {
+    console.log('impl');
   }
 
   removeOrderByTime() {
