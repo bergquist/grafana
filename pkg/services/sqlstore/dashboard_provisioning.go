@@ -57,7 +57,16 @@ func saveProvionedData(sess *DBSession, cmd *models.DashboardProvisioning, dashb
 func GetProvisionedDashboardDataQuery(cmd *models.GetProvisionedDashboardDataQuery) error {
 	var result []*models.DashboardProvisioning
 
-	if err := x.Where("name = ?", cmd.Name).Find(&result); err != nil {
+	sql := `SELECT
+				id,
+				dashboard_id,
+				name,
+				external_id,
+				datetime(updated, 'localtime') as updated
+			from dashboard_provisioning WHERE name = ?`
+
+	err := x.SQL(sql, cmd.Name).Find(&result)
+	if err != nil {
 		return err
 	}
 
