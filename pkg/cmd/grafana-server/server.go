@@ -95,6 +95,7 @@ func (g *GrafanaServerImpl) Start() error {
 	serviceGraph := inject.Graph{}
 	serviceGraph.Provide(&inject.Object{Value: bus.GetBus()})
 	serviceGraph.Provide(&inject.Object{Value: dashboards.NewProvisioningService()})
+	serviceGraph.Provide(&inject.Object{Value: api.NewRouteRegister()})
 	services := registry.GetServices()
 
 	// Add all services to dependency graph
@@ -113,7 +114,7 @@ func (g *GrafanaServerImpl) Start() error {
 			continue
 		}
 
-		g.log.Info(fmt.Sprintf("Initializing %s", reflect.TypeOf(service).Elem().Name()))
+		g.log.Info("Initializing " + reflect.TypeOf(service).Elem().Name())
 
 		if err := service.Init(); err != nil {
 			return fmt.Errorf("Service init failed %v", err)
@@ -133,7 +134,7 @@ func (g *GrafanaServerImpl) Start() error {
 
 		g.childRoutines.Go(func() error {
 			err := service.Run(g.context)
-			g.log.Info(fmt.Sprintf("Stopped %s", reflect.TypeOf(service).Elem().Name()), "reason", err)
+			g.log.Info("Stopped "+reflect.TypeOf(service).Elem().Name(), "reason", err)
 			return err
 		})
 	}

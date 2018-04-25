@@ -26,7 +26,7 @@ type RouteRegister interface {
 
 type RegisterNamedMiddleware func(name string) macaron.Handler
 
-func newRouteRegister(namedMiddleware ...RegisterNamedMiddleware) RouteRegister {
+func NewRouteRegister(namedMiddleware ...RegisterNamedMiddleware) RouteRegister {
 	return &routeRegister{
 		prefix:          "",
 		routes:          []route{},

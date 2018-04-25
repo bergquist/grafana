@@ -23,7 +23,7 @@ func (hs *HTTPServer) registerRoutes() {
 	// automatically set HEAD for every GET
 	macaronR.SetAutoHead(true)
 
-	r := newRouteRegister(middleware.RequestMetrics, middleware.RequestTracing)
+	r := NewRouteRegister(middleware.RequestMetrics, middleware.RequestTracing)
 
 	// not logged in views
 	r.Get("/", reqSignedIn, Index)
