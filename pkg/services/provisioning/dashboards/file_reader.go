@@ -21,8 +21,6 @@ import (
 )
 
 var (
-	checkDiskForChangesInterval = time.Second * 3
-
 	ErrFolderNameMissing = errors.New("Folder name missing")
 )
 
