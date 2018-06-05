@@ -1,6 +1,8 @@
 package sqlstore
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"net/url"
 	"os"
@@ -45,6 +47,7 @@ func init() {
 
 type SqlStore struct {
 	Cfg *setting.Cfg `inject:""`
+	Bus bus.Bus      `inject:""`
 
 	dbCfg           DatabaseConfig
 	engine          *xorm.Engine
@@ -76,6 +79,32 @@ func (ss *SqlStore) Init() error {
 
 	// Init repo instances
 	annotations.SetRepository(&SqlAnnotationRepo{})
+
+	ss.Bus.SetPreTransactionFn(func(ctx context.Context) (context.Context, error) {
+		sess := x.NewSession()
+		err := sess.Begin()
+		if err != nil {
+			return ctx, err
+		}
+
+		withValue := context.WithValue(ctx, "db-session", sess)
+
+		return withValue, nil
+	})
+
+	ss.Bus.SetPostTransctionFn(func(ctx context.Context, err error) error {
+		value := ctx.Value("db-session")
+		sess, ok := value.(*xorm.Session)
+		if !ok {
+			return errors.New("context is missing transaction")
+		}
+
+		if err != nil {
+			return sess.Rollback()
+		}
+
+		return sess.Commit()
+	})
 
 	// ensure admin user
 	if ss.skipEnsureAdmin {
@@ -240,6 +269,7 @@ func (ss *SqlStore) readConfig() {
 func InitTestDB(t *testing.T) *SqlStore {
 	sqlstore := &SqlStore{}
 	sqlstore.skipEnsureAdmin = true
+	sqlstore.Bus = bus.New()
 
 	dbType := migrator.SQLITE
 

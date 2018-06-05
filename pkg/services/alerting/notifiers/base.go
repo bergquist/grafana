@@ -1,6 +1,7 @@
 package notifiers
 
 import (
+	"context"
 	"time"
 
 	"github.com/grafana/grafana/pkg/bus"
@@ -72,7 +73,11 @@ func (n *NotifierBase) ShouldNotify(c *alerting.EvalContext) bool {
 		NotifierId: n.Id,
 	}
 
-	if err := bus.Dispatch(cmd); err != nil {
+	err := bus.InTransaction(c.Ctx, func(ctx context.Context) error {
+		return bus.DispatchCtx(ctx, cmd)
+	})
+
+	if err != nil {
 		n.log.Error("Could not determine last time alert notifier fired", "Alert name", c.Rule.Name, "Error", err)
 		return false
 	}

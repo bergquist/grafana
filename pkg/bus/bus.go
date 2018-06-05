@@ -12,21 +12,56 @@ type Msg interface{}
 
 var ErrHandlerNotFound = errors.New("handler not found")
 
+type BeginSessionFn func(ctx context.Context) (context.Context, error)
+type EndSessionFn func(ctx context.Context, err error) error
+
+func (b *InProcBus) SetPreTransactionFn(fn BeginSessionFn) {
+	b.beginTranFn = fn
+}
+
+func (b *InProcBus) SetPostTransctionFn(fn EndSessionFn) {
+	b.endTranFn = fn
+}
+
 type Bus interface {
 	Dispatch(msg Msg) error
 	DispatchCtx(ctx context.Context, msg Msg) error
 	Publish(msg Msg) error
 
+	// InTransaction starts a transaction and store it in the context.
+	// The caller can then pass a function with multiple DispatchCtx calls that
+	// all will be executed in the same transaction. InTransaction will rollback if the
+	// callback returns an error.
+	InTransaction(ctx context.Context, fn func(ctx context.Context) error) error
+
 	AddHandler(handler HandlerFunc)
 	AddCtxHandler(handler HandlerFunc)
 	AddEventListener(handler HandlerFunc)
 	AddWildcardListener(handler HandlerFunc)
+
+	SetPreTransactionFn(fn BeginSessionFn)
+	SetPostTransctionFn(fn EndSessionFn)
+}
+
+func (b *InProcBus) InTransaction(ctx context.Context, fn func(ctx context.Context) error) error {
+	ctxWithTran, err := b.beginTranFn(ctx)
+	if err != nil {
+		return err
+	}
+
+	err = fn(ctxWithTran)
+	b.endTranFn(ctxWithTran, err)
+
+	return err
 }
 
 type InProcBus struct {
 	handlers          map[string]HandlerFunc
 	listeners         map[string][]HandlerFunc
 	wildcardListeners []HandlerFunc
+
+	beginTranFn BeginSessionFn
+	endTranFn   EndSessionFn
 }
 
 // temp stuff, not sure how to handle bus instance, and init yet
@@ -37,6 +72,15 @@ func New() Bus {
 	bus.handlers = make(map[string]HandlerFunc)
 	bus.listeners = make(map[string][]HandlerFunc)
 	bus.wildcardListeners = make([]HandlerFunc, 0)
+
+	bus.beginTranFn = func(ctx context.Context) (context.Context, error) {
+		return ctx, nil
+	}
+
+	bus.endTranFn = func(ctx context.Context, err error) error {
+		return err
+	}
+
 	return bus
 }
 
@@ -165,6 +209,10 @@ func DispatchCtx(ctx context.Context, msg Msg) error {
 
 func Publish(msg Msg) error {
 	return globalBus.Publish(msg)
+}
+
+func InTransaction(ctx context.Context, fn func(ctx context.Context) error) error {
+	return globalBus.InTransaction(ctx, fn)
 }
 
 func ClearBusHandlers() {
