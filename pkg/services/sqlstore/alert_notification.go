@@ -246,18 +246,16 @@ func RecordNotificationJournal(ctx context.Context, cmd *m.RecordNotificationJou
 
 func GetLatestNotification(ctx context.Context, cmd *m.GetLatestNotificationQuery) error {
 	return inTransactionCtx(ctx, func(sess *DBSession) error {
-		nj := &m.AlertNotificationJournal{}
+		nj := []m.AlertNotificationJournal{}
 
-		_, err := sess.Desc("alert_notification_journal.sent_at").
-			Limit(1).
-			Where("alert_notification_journal.org_id = ? AND alert_notification_journal.alert_id = ? AND alert_notification_journal.notifier_id = ?", cmd.OrgId, cmd.AlertId, cmd.NotifierId).Get(nj)
+		err := sess.Desc("alert_notification_journal.sent_at").
+			Where("alert_notification_journal.org_id = ?", cmd.OrgId).
+			Where("alert_notification_journal.alert_id = ?", cmd.AlertId).
+			Where("alert_notification_journal.notifier_id = ?", cmd.AlertId).
+			Find(&nj)
 
 		if err != nil {
 			return err
-		}
-
-		if nj.AlertId == 0 && nj.Id == 0 && nj.NotifierId == 0 && nj.OrgId == 0 {
-			return m.ErrJournalingNotFound
 		}
 
 		cmd.Result = nj
