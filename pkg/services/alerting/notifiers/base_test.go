@@ -28,43 +28,58 @@ func TestShouldSendAlertNotification(t *testing.T) {
 		expect bool
 	}{
 		{
-			name:      "pending -> ok should not trigger an notification",
-			newState:  m.AlertStatePending,
-			prevState: m.AlertStateOK,
-			expect:    false,
+			name:         "pending -> ok should not trigger an notification",
+			newState:     m.AlertStatePending,
+			prevState:    m.AlertStateOK,
+			sendReminder: false,
+			journals:     []m.AlertNotificationJournal{},
+
+			expect: false,
 		},
 		{
-			name:      "ok -> alerting should trigger an notification",
-			newState:  m.AlertStateOK,
-			prevState: m.AlertStateAlerting,
-			expect:    true,
+			name:         "ok -> alerting should trigger an notification",
+			newState:     m.AlertStateOK,
+			prevState:    m.AlertStateAlerting,
+			sendReminder: false,
+			journals:     []m.AlertNotificationJournal{},
+
+			expect: true,
 		},
 		{
-			name:      "ok -> pending should not trigger an notification",
-			newState:  m.AlertStateOK,
-			prevState: m.AlertStatePending,
-			expect:    false,
+			name:         "ok -> pending should not trigger an notification",
+			newState:     m.AlertStateOK,
+			prevState:    m.AlertStatePending,
+			sendReminder: false,
+			journals:     []m.AlertNotificationJournal{},
+
+			expect: false,
 		},
 		{
 			name:         "ok -> ok should not trigger an notification",
 			newState:     m.AlertStateOK,
 			prevState:    m.AlertStateOK,
-			expect:       false,
 			sendReminder: false,
+			journals:     []m.AlertNotificationJournal{},
+
+			expect: false,
 		},
 		{
-			name:         "ok -> alerting should not trigger an notification",
+			name:         "ok -> alerting should trigger an notification",
 			newState:     m.AlertStateOK,
 			prevState:    m.AlertStateAlerting,
-			expect:       true,
 			sendReminder: true,
+			journals:     []m.AlertNotificationJournal{},
+
+			expect: true,
 		},
 		{
 			name:         "ok -> ok with reminder should not trigger an notification",
 			newState:     m.AlertStateOK,
 			prevState:    m.AlertStateOK,
-			expect:       false,
 			sendReminder: true,
+			journals:     []m.AlertNotificationJournal{},
+
+			expect: false,
 		},
 		{
 			name:         "alerting -> alerting with reminder and no journaling should trigger",
@@ -72,7 +87,9 @@ func TestShouldSendAlertNotification(t *testing.T) {
 			prevState:    m.AlertStateAlerting,
 			frequency:    time.Minute * 10,
 			sendReminder: true,
-			expect:       true,
+			journals:     []m.AlertNotificationJournal{},
+
+			expect: true,
 		},
 		{
 			name:         "alerting -> alerting with reminder and successful recent journal event should not trigger",
@@ -80,10 +97,11 @@ func TestShouldSendAlertNotification(t *testing.T) {
 			prevState:    m.AlertStateAlerting,
 			frequency:    time.Minute * 10,
 			sendReminder: true,
-			expect:       false,
 			journals: []m.AlertNotificationJournal{
 				{SentAt: tnow.Add(-time.Minute).Unix(), Success: true},
 			},
+
+			expect: false,
 		},
 		{
 			name:         "alerting -> alerting with reminder and failed recent journal event should trigger",
