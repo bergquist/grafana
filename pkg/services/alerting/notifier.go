@@ -59,8 +59,31 @@ func (n *notificationService) SendIfNeeded(context *EvalContext) error {
 }
 
 func (n *notificationService) sendNotifications(evalContext *EvalContext, notifiers []Notifier) error {
+
 	for _, notifier := range notifiers {
 		not := notifier
+
+		//get state for notifier
+		query := &m.GetNotificationStatesQuery{
+			AlertId:    evalContext.Rule.Id,
+			NotifierId: not.GetNotifierId(),
+		}
+		err := bus.DispatchCtx(evalContext.Ctx, query)
+		if err == m.ErrJournalingNotFound {
+			// does not exist so lets insert one.
+			cmd := &m.RecordNotificationJournalCommand{
+				OrgId:      evalContext.Rule.OrgId,
+				AlertId:    evalContext.Rule.Id,
+				NotifierId: not.GetNotifierId(),
+				Status:     "pending",
+				SentAt:     time.Now(),
+			}
+			_ := bus.DispatchCtx(evalContext.Ctx, cmd)
+		}
+
+		if query.Result.Status == "pending" && time.Unix(query.Result.SentAt, 0).Before(time.Now()-10*time.Minute) {
+			continue
+		}
 
 		err := bus.InTransaction(evalContext.Ctx, func(ctx context.Context) error {
 			n.log.Debug("trying to send notification", "id", not.GetNotifierId())

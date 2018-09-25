@@ -83,6 +83,7 @@ type AlertNotificationJournal struct {
 	NotifierId int64
 	SentAt     int64
 	Success    bool
+	Status     string
 }
 
 type RecordNotificationJournalCommand struct {
@@ -91,6 +92,15 @@ type RecordNotificationJournalCommand struct {
 	NotifierId int64
 	SentAt     int64
 	Success    bool
+	Status     string
+}
+
+type GetNotificationStatesQuery struct {
+	OrgId      int64
+	AlertId    int64
+	NotifierId int64
+
+	Result AlertNotificationJournal
 }
 
 type GetLatestNotificationQuery struct {
