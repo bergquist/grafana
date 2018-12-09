@@ -50,6 +50,7 @@ export class DashboardModel {
     meta: true,
     panels: true, // needs special handling
     templating: true, // needs special handling
+    annotations: true,
     originalTime: true,
     originalTemplating: true,
   };
@@ -174,6 +175,10 @@ export class DashboardModel {
         }
       }
     }
+
+    copy.annotations = {
+      list: _.map(this.annotations.list, anno => (anno.getSaveModel ? anno.getSaveModel() : anno)),
+    };
 
     if (!defaults.saveTimerange) {
       copy.time = this.originalTime;

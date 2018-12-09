@@ -1,7 +1,7 @@
-import angular from 'angular';
 import _ from 'lodash';
 import $ from 'jquery';
 import coreModule from 'app/core/core_module';
+import { AnnotationModel } from './annotation_model';
 
 export class AnnotationsEditorCtrl {
   mode: any;
@@ -29,6 +29,8 @@ export class AnnotationsEditorCtrl {
     this.mode = 'list';
     this.datasources = datasourceSrv.getAnnotationSources();
     this.annotations = $scope.dashboard.annotations.list;
+    console.log('annotation editor ctrl', $scope.dashboard);
+    //this.annotations = _.map($scope.dashboard.annotations.list, model => new AnnotationModel(model));
     this.reset();
 
     this.onColorChange = this.onColorChange.bind(this);
@@ -41,6 +43,8 @@ export class AnnotationsEditorCtrl {
   }
 
   edit(annotation) {
+    console.log('annotation', annotation);
+    //annotation = annotation.model;
     this.currentAnnotation = annotation;
     this.currentAnnotation.showIn = this.currentAnnotation.showIn || 0;
     this.currentIsNew = false;
@@ -50,7 +54,8 @@ export class AnnotationsEditorCtrl {
   }
 
   reset() {
-    this.currentAnnotation = angular.copy(this.annotationDefaults);
+    //this.currentAnnotation = angular.copy(this.annotationDefaults);
+    this.currentAnnotation = new AnnotationModel({});
     this.currentAnnotation.datasource = this.datasources[0].name;
     this.currentIsNew = true;
     this.datasourceChanged();

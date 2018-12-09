@@ -11,16 +11,23 @@ import { makeRegions, dedupAnnotations } from './events_processing';
 
 // Types
 import { DashboardModel } from '../dashboard/dashboard_model';
+import { AnnotationModel } from './annotation_model';
 
 export class AnnotationsSrv {
   globalAnnotationsPromise: any;
   alertStatesPromise: any;
   datasourcePromises: any;
+  annotations: any;
 
   /** @ngInject */
   constructor(private $rootScope, private $q, private datasourceSrv, private backendSrv, private timeSrv) {}
 
   init(dashboard: DashboardModel) {
+    this.annotations = dashboard.annotations.list = _.map(
+      dashboard.annotations.list,
+      model => new AnnotationModel(model)
+    );
+
     // clear promises on refresh events
     dashboard.on('refresh', () => {
       this.globalAnnotationsPromise = null;
@@ -91,6 +98,7 @@ export class AnnotationsSrv {
   }
 
   getGlobalAnnotations(options) {
+    console.log('getGlobalAnnotations', options);
     const dashboard = options.dashboard;
 
     if (this.globalAnnotationsPromise) {
@@ -101,7 +109,8 @@ export class AnnotationsSrv {
     const promises = [];
     const dsPromises = [];
 
-    for (const annotation of dashboard.annotations.list) {
+    //for (const annotation of dashboard.annotations.list) {
+    for (const annotation of this.annotations) {
       if (!annotation.enable) {
         continue;
       }
