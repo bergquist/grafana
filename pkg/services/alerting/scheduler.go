@@ -37,6 +37,26 @@ func (s *schedulerImpl) Update(rules []*Rule) {
 
 		job.Rule = rule
 
+		// (rule.Frequency * 1000)
+		//   / int64(len(rules))
+		//     * int64(i)
+		//
+
+		// 10m
+		// 600s
+		// 600 * 1000 = 600000
+		// 600000 / 5 (len) = 120000
+		// 120000 * 4 (i) = 480000
+		// 480000 / 1000 = 480
+
+		// 10m
+		// 600s
+		// 600 * 1000 = 600000
+		// 600000 / 5 (len) = 120000
+		// 120000 * 3 (i) = 360000
+		// 360000 / 1000 = 360
+		// Offset = 360
+
 		offset := ((rule.Frequency * 1000) / int64(len(rules))) * int64(i)
 		job.Offset = int64(math.Floor(float64(offset) / 1000))
 		if job.Offset == 0 { //zero offset causes division with 0 panics.
