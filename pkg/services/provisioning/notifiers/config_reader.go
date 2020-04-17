@@ -75,21 +75,21 @@ func (cr *configReader) parseNotificationConfig(path string, file os.FileInfo) (
 func checkOrgIDAndOrgName(notifications []*notificationsAsConfig) {
 	for i := range notifications {
 		for _, notification := range notifications[i].Notifications {
-			if notification.OrgId < 1 {
+			if notification.OrgID < 1 {
 				if notification.OrgName == "" {
-					notification.OrgId = 1
+					notification.OrgID = 1
 				} else {
-					notification.OrgId = 0
+					notification.OrgID = 0
 				}
 			}
 		}
 
 		for _, notification := range notifications[i].DeleteNotifications {
-			if notification.OrgId < 1 {
+			if notification.OrgID < 1 {
 				if notification.OrgName == "" {
-					notification.OrgId = 1
+					notification.OrgID = 1
 				} else {
-					notification.OrgId = 0
+					notification.OrgID = 0
 				}
 			}
 		}
@@ -107,7 +107,7 @@ func validateRequiredField(notifications []*notificationsAsConfig) error {
 				)
 			}
 
-			if notification.Uid == "" {
+			if notification.UID == "" {
 				errStrings = append(
 					errStrings,
 					fmt.Sprintf("Added alert notification item %d in configuration doesn't contain required field uid", index+1),
@@ -123,7 +123,7 @@ func validateRequiredField(notifications []*notificationsAsConfig) error {
 				)
 			}
 
-			if notification.Uid == "" {
+			if notification.UID == "" {
 				errStrings = append(
 					errStrings,
 					fmt.Sprintf("Deleted alert notification item %d in configuration doesn't contain required field uid", index+1),
