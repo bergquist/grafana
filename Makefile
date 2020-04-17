@@ -80,14 +80,15 @@ revive: scripts/go/bin/revive
 		-config ./scripts/go/configs/revive.toml \
 		$(GO_FILES)
 
-revive-alerting: scripts/go/bin/revive
+revive-strict: scripts/go/bin/revive
 	@echo "lint alerting via revive"
 	@scripts/go/bin/revive \
 		-formatter stylish \
 		-config ./scripts/go/configs/revive-strict.toml \
 		./pkg/services/alerting/... \
 		./pkg/services/provisioning/datasources/... \
-		./pkg/services/provisioning/dashboards/...
+		./pkg/services/provisioning/dashboards/... \
+		./pkg/services/provisioning/notifiers/...
 
 scripts/go/bin/golangci-lint: scripts/go/go.mod
 	@cd scripts/go; \

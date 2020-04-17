@@ -1,17 +1,13 @@
 package notifiers
 
 import (
-	"errors"
-
 	"github.com/grafana/grafana/pkg/bus"
 	"github.com/grafana/grafana/pkg/infra/log"
 	"github.com/grafana/grafana/pkg/models"
 )
 
-var (
-	ErrInvalidConfigTooManyDefault = errors.New("Alert notification provisioning config is invalid. Only one alert notification can be marked as default")
-)
-
+// Provision reads configuration for alert notifiers
+// and syncs them with the database
 func Provision(configDirectory string) error {
 	dc := newNotificationProvisioner(log.New("provisioning.notifiers"))
 	return dc.applyChanges(configDirectory)
