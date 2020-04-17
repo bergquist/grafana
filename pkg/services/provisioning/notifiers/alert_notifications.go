@@ -13,6 +13,8 @@ func Provision(configDirectory string) error {
 	return dc.applyChanges(configDirectory)
 }
 
+// NotificationProvisioner is responsible for keeping configuration
+// about alert notifiers in sync with the database.
 type NotificationProvisioner struct {
 	log         log.Logger
 	cfgProvider *configReader

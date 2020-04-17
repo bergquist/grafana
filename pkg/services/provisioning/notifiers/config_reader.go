@@ -46,7 +46,7 @@ func (cr *configReader) readConfig(path string) ([]*notificationsAsConfig, error
 		return nil, err
 	}
 
-	checkOrgIdAndOrgName(notifications)
+	checkOrgIDAndOrgName(notifications)
 
 	err = validateNotifications(notifications)
 	if err != nil {
@@ -72,7 +72,7 @@ func (cr *configReader) parseNotificationConfig(path string, file os.FileInfo) (
 	return cfg.mapToNotificationFromConfig(), nil
 }
 
-func checkOrgIdAndOrgName(notifications []*notificationsAsConfig) {
+func checkOrgIDAndOrgName(notifications []*notificationsAsConfig) {
 	for i := range notifications {
 		for _, notification := range notifications[i].Notifications {
 			if notification.OrgId < 1 {
