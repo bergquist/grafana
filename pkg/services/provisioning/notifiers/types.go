@@ -58,7 +58,7 @@ type notificationFromConfigV0 struct {
 	Settings              values.JSONValue   `json:"settings" yaml:"settings"`
 }
 
-func (notification notificationFromConfig) SettingsToJson() *simplejson.Json {
+func (notification notificationFromConfig) SettingsToJSON() *simplejson.Json {
 	settings := simplejson.New()
 	if len(notification.Settings) > 0 {
 		for k, v := range notification.Settings {
