@@ -947,7 +947,7 @@ func TestDashboardApiEndpoint(t *testing.T) {
 		})
 
 		loggedInUserScenarioWithRole("When calling GET on", "GET", "/api/dashboards/uid/dash", "/api/dashboards/uid/:uid", models.ROLE_EDITOR, func(sc *scenarioContext) {
-			mock := provisioning.NewProvisioningServiceMock()
+			mock := provisioning.NewServiceMock()
 			mock.GetDashboardProvisionerResolvedPathFunc = func(name string) string {
 				return "/tmp/grafana/dashboards"
 			}
@@ -960,7 +960,7 @@ func TestDashboardApiEndpoint(t *testing.T) {
 		})
 
 		loggedInUserScenarioWithRole("When allowUiUpdates is true and calling GET on", "GET", "/api/dashboards/uid/dash", "/api/dashboards/uid/:uid", models.ROLE_EDITOR, func(sc *scenarioContext) {
-			mock := provisioning.NewProvisioningServiceMock()
+			mock := provisioning.NewServiceMock()
 			mock.GetDashboardProvisionerResolvedPathFunc = func(name string) string {
 				return "/tmp/grafana/dashboards"
 			}
@@ -990,7 +990,7 @@ func TestDashboardApiEndpoint(t *testing.T) {
 func GetDashboardShouldReturn200WithConfig(sc *scenarioContext, provisioningService provisioning.Service) dtos.
 	DashboardFullWithMeta {
 	if provisioningService == nil {
-		provisioningService = provisioning.NewProvisioningServiceMock()
+		provisioningService = provisioning.NewServiceMock()
 	}
 
 	hs := &HTTPServer{
@@ -1081,7 +1081,7 @@ func postDashboardScenario(desc string, url string, routePattern string, mock *d
 		hs := HTTPServer{
 			Bus:                 bus.GetBus(),
 			Cfg:                 setting.NewCfg(),
-			ProvisioningService: provisioning.NewProvisioningServiceMock(),
+			ProvisioningService: provisioning.NewServiceMock(),
 		}
 
 		sc := setupScenarioContext(url)
@@ -1140,7 +1140,7 @@ func restoreDashboardVersionScenario(desc string, url string, routePattern strin
 		hs := HTTPServer{
 			Cfg:                 setting.NewCfg(),
 			Bus:                 bus.GetBus(),
-			ProvisioningService: provisioning.NewProvisioningServiceMock(),
+			ProvisioningService: provisioning.NewServiceMock(),
 		}
 
 		sc := setupScenarioContext(url)

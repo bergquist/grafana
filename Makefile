@@ -80,7 +80,7 @@ revive: scripts/go/bin/revive
 		-config ./scripts/go/configs/revive.toml \
 		$(GO_FILES)
 
-revive-strict: scripts/go/bin/revive
+lint-go-strict: scripts/go/bin/revive
 	@echo "lint alerting via revive"
 	@scripts/go/bin/revive \
 		-formatter stylish \

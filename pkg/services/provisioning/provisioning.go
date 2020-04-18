@@ -15,6 +15,8 @@ import (
 	"github.com/grafana/grafana/pkg/setting"
 )
 
+// Service is responsible for setting up Grafana based on
+// configuration files.
 type Service interface {
 	ProvisionDatasources() error
 	ProvisionNotifications() error
@@ -24,7 +26,7 @@ type Service interface {
 }
 
 func init() {
-	registry.RegisterService(NewProvisioningServiceImpl(
+	registry.RegisterService(newProvisioningService(
 		func(path string) (dashboards.DashboardProvisioner, error) {
 			return dashboards.New(path)
 		},
@@ -33,7 +35,7 @@ func init() {
 	))
 }
 
-func NewProvisioningServiceImpl(
+func newProvisioningService(
 	newDashboardProvisioner dashboards.DashboardProvisionerFactory,
 	provisionNotifiers func(string) error,
 	provisionDatasources func(string) error,
