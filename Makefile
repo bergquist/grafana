@@ -86,9 +86,7 @@ lint-go-strict: scripts/go/bin/revive
 		-formatter stylish \
 		-config ./scripts/go/configs/revive-strict.toml \
 		./pkg/services/alerting/... \
-		./pkg/services/provisioning/... \
-		./pkg/services/provisioning/dashboards/... \
-		./pkg/services/provisioning/notifiers/...
+		./pkg/services/provisioning/... 
 
 scripts/go/bin/golangci-lint: scripts/go/go.mod
 	@cd scripts/go; \

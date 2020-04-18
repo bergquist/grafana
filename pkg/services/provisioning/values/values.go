@@ -1,4 +1,4 @@
-// Package values is a set of value types to use in provisioning. They add custom unmarshaling logic that puts the string values
+// Package values is a set of value types to use in provisioning. They add custom unmarshalling logic that puts the string values
 // through os.ExpandEnv.
 // Usage:
 // type Data struct {
