@@ -15,7 +15,7 @@ import (
 	"github.com/grafana/grafana/pkg/setting"
 )
 
-type ProvisioningService interface {
+type Service interface {
 	ProvisionDatasources() error
 	ProvisionNotifications() error
 	ProvisionDashboards() error

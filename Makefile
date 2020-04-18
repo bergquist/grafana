@@ -86,7 +86,7 @@ revive-strict: scripts/go/bin/revive
 		-formatter stylish \
 		-config ./scripts/go/configs/revive-strict.toml \
 		./pkg/services/alerting/... \
-		./pkg/services/provisioning/datasources/... \
+		./pkg/services/provisioning/... \
 		./pkg/services/provisioning/dashboards/... \
 		./pkg/services/provisioning/notifiers/...
 
