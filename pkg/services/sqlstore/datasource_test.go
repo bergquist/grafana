@@ -168,6 +168,28 @@ func TestDataAccess(t *testing.T) {
 			err := UpdateDataSource(cmd)
 			require.NoError(t, err)
 		})
+
+		t.Run("updates datasource should remove missing secure json keys", func(t *testing.T) {
+			InitTestDB(t)
+			newCmd := defaultAddDatasourceCommand
+			newCmd.SecureJsonData = map[string]string{"key1": "value1", "key2": "value2"}
+			err := AddDataSource(&newCmd)
+			require.NoError(t, err)
+
+			updateCmd := defaultUpdateDatasourceCommand
+			updateCmd.Id = newCmd.Result.Id
+			updateCmd.Version = newCmd.Result.Version
+			updateCmd.SecureJsonData = map[string]string{"key1": "value1"}
+			err = UpdateDataSource(&updateCmd)
+			require.NoError(t, err)
+
+			query := models.GetDataSourceByIdQuery{Id: newCmd.Result.Id}
+			err = GetDataSourceById(&query)
+
+			secureJSON := query.Result.SecureJsonData.Decrypt()
+			_, exist := secureJSON["key2"]
+			require.False(t, exist, "key2 should have been deleted since its missing in the update")
+		})
 	})
 
 	t.Run("DeleteDataSourceById", func(t *testing.T) {
