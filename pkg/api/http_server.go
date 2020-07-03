@@ -10,6 +10,7 @@ import (
 	"path"
 	"sync"
 
+	"github.com/grafana/grafana/pkg/services/annotations"
 	"github.com/grafana/grafana/pkg/services/search"
 
 	"github.com/grafana/grafana/pkg/plugins/backendplugin"
@@ -70,6 +71,7 @@ type HTTPServer struct {
 	BackendPluginManager backendplugin.Manager            `inject:""`
 	PluginManager        *plugins.PluginManager           `inject:""`
 	SearchService        *search.SearchService            `inject:""`
+	AnnotationService    *annotations.Service             `inject:""`
 }
 
 func (hs *HTTPServer) Init() error {

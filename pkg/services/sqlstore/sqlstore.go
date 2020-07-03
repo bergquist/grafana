@@ -16,7 +16,6 @@ import (
 	"github.com/grafana/grafana/pkg/infra/log"
 	"github.com/grafana/grafana/pkg/models"
 	"github.com/grafana/grafana/pkg/registry"
-	"github.com/grafana/grafana/pkg/services/annotations"
 	"github.com/grafana/grafana/pkg/services/sqlstore/migrations"
 	"github.com/grafana/grafana/pkg/services/sqlstore/migrator"
 	"github.com/grafana/grafana/pkg/services/sqlstore/sqlutil"
@@ -94,7 +93,6 @@ func (ss *SqlStore) Init() error {
 	}
 
 	// Init repo instances
-	annotations.SetRepository(&SqlAnnotationRepo{})
 	ss.Bus.SetTransactionManager(ss)
 
 	// Register handlers

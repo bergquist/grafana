@@ -13,6 +13,7 @@ import (
 	"github.com/grafana/grafana/pkg/bus"
 	"github.com/grafana/grafana/pkg/infra/log"
 	"github.com/grafana/grafana/pkg/registry"
+	"github.com/grafana/grafana/pkg/services/annotations"
 	"github.com/grafana/grafana/pkg/services/rendering"
 	"github.com/grafana/grafana/pkg/setting"
 	"golang.org/x/sync/errgroup"
@@ -23,8 +24,9 @@ import (
 // schedules alert evaluations and makes sure notifications
 // are sent.
 type AlertEngine struct {
-	RenderService rendering.Service `inject:""`
-	Bus           bus.Bus           `inject:""`
+	RenderService     rendering.Service    `inject:""`
+	Bus               bus.Bus              `inject:""`
+	AnnotationService *annotations.Service `inject:""`
 
 	execQueue     chan *Job
 	ticker        *Ticker
@@ -52,7 +54,7 @@ func (e *AlertEngine) Init() error {
 	e.evalHandler = NewEvalHandler()
 	e.ruleReader = newRuleReader()
 	e.log = log.New("alerting.engine")
-	e.resultHandler = newResultHandler(e.RenderService)
+	e.resultHandler = newResultHandler(e.RenderService, e.AnnotationService)
 	return nil
 }
 

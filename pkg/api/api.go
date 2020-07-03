@@ -370,15 +370,15 @@ func (hs *HTTPServer) registerRoutes() {
 			orgRoute.Get("/lookup", Wrap(GetAlertNotificationLookup))
 		})
 
-		apiRoute.Get("/annotations", Wrap(GetAnnotations))
-		apiRoute.Post("/annotations/mass-delete", reqOrgAdmin, bind(dtos.DeleteAnnotationsCmd{}), Wrap(DeleteAnnotations))
+		apiRoute.Get("/annotations", Wrap(hs.GetAnnotations))
+		apiRoute.Post("/annotations/mass-delete", reqOrgAdmin, bind(dtos.DeleteAnnotationsCmd{}), Wrap(hs.DeleteAnnotations))
 
 		apiRoute.Group("/annotations", func(annotationsRoute routing.RouteRegister) {
-			annotationsRoute.Post("/", bind(dtos.PostAnnotationsCmd{}), Wrap(PostAnnotation))
-			annotationsRoute.Delete("/:annotationId", Wrap(DeleteAnnotationByID))
-			annotationsRoute.Put("/:annotationId", bind(dtos.UpdateAnnotationsCmd{}), Wrap(UpdateAnnotation))
-			annotationsRoute.Patch("/:annotationId", bind(dtos.PatchAnnotationsCmd{}), Wrap(PatchAnnotation))
-			annotationsRoute.Post("/graphite", reqEditorRole, bind(dtos.PostGraphiteAnnotationsCmd{}), Wrap(PostGraphiteAnnotation))
+			annotationsRoute.Post("/", bind(dtos.PostAnnotationsCmd{}), Wrap(hs.PostAnnotation))
+			annotationsRoute.Delete("/:annotationId", Wrap(hs.DeleteAnnotationByID))
+			annotationsRoute.Put("/:annotationId", bind(dtos.UpdateAnnotationsCmd{}), Wrap(hs.UpdateAnnotation))
+			annotationsRoute.Patch("/:annotationId", bind(dtos.PatchAnnotationsCmd{}), Wrap(hs.PatchAnnotation))
+			annotationsRoute.Post("/graphite", reqEditorRole, bind(dtos.PostGraphiteAnnotationsCmd{}), Wrap(hs.PostGraphiteAnnotation))
 		})
 
 		// error test

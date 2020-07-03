@@ -31,6 +31,8 @@ func TestAnnotationsApiEndpoint(t *testing.T) {
 			Tags: []string{"tag1", "tag2"},
 		}
 
+		hs := HTTPServer{}
+
 		Convey("When user is an Org Viewer", func() {
 			role := models.ROLE_VIEWER
 			Convey("Should not be allowed to save an annotation", func() {
@@ -50,7 +52,7 @@ func TestAnnotationsApiEndpoint(t *testing.T) {
 				})
 
 				loggedInUserScenarioWithRole("When calling DELETE on", "DELETE", "/api/annotations/1", "/api/annotations/:annotationId", role, func(sc *scenarioContext) {
-					sc.handlerFunc = DeleteAnnotationByID
+					sc.handlerFunc = hs.DeleteAnnotationByID
 					sc.fakeReqWithParams("DELETE", sc.url, map[string]string{}).exec()
 					So(sc.resp.Code, ShouldEqual, 403)
 				})
@@ -76,7 +78,7 @@ func TestAnnotationsApiEndpoint(t *testing.T) {
 				})
 
 				loggedInUserScenarioWithRole("When calling DELETE on", "DELETE", "/api/annotations/1", "/api/annotations/:annotationId", role, func(sc *scenarioContext) {
-					sc.handlerFunc = DeleteAnnotationByID
+					sc.handlerFunc = hs.DeleteAnnotationByID
 					sc.fakeReqWithParams("DELETE", sc.url, map[string]string{}).exec()
 					So(sc.resp.Code, ShouldEqual, 200)
 				})
@@ -149,7 +151,7 @@ func TestAnnotationsApiEndpoint(t *testing.T) {
 				})
 
 				loggedInUserScenarioWithRole("When calling DELETE on", "DELETE", "/api/annotations/1", "/api/annotations/:annotationId", role, func(sc *scenarioContext) {
-					sc.handlerFunc = DeleteAnnotationByID
+					sc.handlerFunc = hs.DeleteAnnotationByID
 					sc.fakeReqWithParams("DELETE", sc.url, map[string]string{}).exec()
 					So(sc.resp.Code, ShouldEqual, 403)
 				})

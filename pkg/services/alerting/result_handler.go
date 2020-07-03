@@ -20,14 +20,16 @@ type resultHandler interface {
 }
 
 type defaultResultHandler struct {
-	notifier *notificationService
-	log      log.Logger
+	notifier          *notificationService
+	annotationService *annotations.Service
+	log               log.Logger
 }
 
-func newResultHandler(renderService rendering.Service) *defaultResultHandler {
+func newResultHandler(renderService rendering.Service, annotationService *annotations.Service) *defaultResultHandler {
 	return &defaultResultHandler{
-		log:      log.New("alerting.resultHandler"),
-		notifier: newNotificationService(renderService),
+		log:               log.New("alerting.resultHandler"),
+		notifier:          newNotificationService(renderService),
+		annotationService: annotationService,
 	}
 }
 
@@ -94,8 +96,7 @@ func (handler *defaultResultHandler) handle(evalContext *EvalContext) error {
 			Data:        annotationData,
 		}
 
-		annotationRepo := annotations.GetRepository()
-		if err := annotationRepo.Save(&item); err != nil {
+		if err := handler.annotationService.Save(&item); err != nil {
 			handler.log.Error("Failed to save annotation for new alert state", "error", err)
 		}
 	}

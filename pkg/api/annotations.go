@@ -10,7 +10,7 @@ import (
 	"github.com/grafana/grafana/pkg/util"
 )
 
-func GetAnnotations(c *models.ReqContext) Response {
+func (hs *HTTPServer) GetAnnotations(c *models.ReqContext) Response {
 
 	query := &annotations.ItemQuery{
 		From:        c.QueryInt64("from"),
@@ -26,9 +26,9 @@ func GetAnnotations(c *models.ReqContext) Response {
 		MatchAny:    c.QueryBool("matchAny"),
 	}
 
-	repo := annotations.GetRepository()
+	//repo := hs.AnnotationService.F.GetRepository()
 
-	items, err := repo.Find(query)
+	items, err := hs.AnnotationService.Find(query)
 	if err != nil {
 		return Error(500, "Failed to get annotations", err)
 	}
@@ -50,12 +50,10 @@ func (e *CreateAnnotationError) Error() string {
 	return e.message
 }
 
-func PostAnnotation(c *models.ReqContext, cmd dtos.PostAnnotationsCmd) Response {
+func (hs *HTTPServer) PostAnnotation(c *models.ReqContext, cmd dtos.PostAnnotationsCmd) Response {
 	if canSave, err := canSaveByDashboardID(c, cmd.DashboardId); err != nil || !canSave {
 		return dashboardGuardianResponse(err)
 	}
-
-	repo := annotations.GetRepository()
 
 	if cmd.Text == "" {
 		err := &CreateAnnotationError{"text field should not be empty"}
@@ -74,7 +72,7 @@ func PostAnnotation(c *models.ReqContext, cmd dtos.PostAnnotationsCmd) Response 
 		Tags:        cmd.Tags,
 	}
 
-	if err := repo.Save(&item); err != nil {
+	if err := hs.AnnotationService.Save(&item); err != nil {
 		return Error(500, "Failed to save annotation", err)
 	}
 
@@ -94,9 +92,7 @@ func formatGraphiteAnnotation(what string, data string) string {
 	return text
 }
 
-func PostGraphiteAnnotation(c *models.ReqContext, cmd dtos.PostGraphiteAnnotationsCmd) Response {
-	repo := annotations.GetRepository()
-
+func (hs *HTTPServer) PostGraphiteAnnotation(c *models.ReqContext, cmd dtos.PostGraphiteAnnotationsCmd) Response {
 	if cmd.What == "" {
 		err := &CreateAnnotationError{"what field should not be empty"}
 		return Error(500, "Failed to save Graphite annotation", err)
@@ -135,7 +131,7 @@ func PostGraphiteAnnotation(c *models.ReqContext, cmd dtos.PostGraphiteAnnotatio
 		Tags:   tagsArray,
 	}
 
-	if err := repo.Save(&item); err != nil {
+	if err := hs.AnnotationService.Save(&item); err != nil {
 		return Error(500, "Failed to save Graphite annotation", err)
 	}
 
@@ -145,12 +141,10 @@ func PostGraphiteAnnotation(c *models.ReqContext, cmd dtos.PostGraphiteAnnotatio
 	})
 }
 
-func UpdateAnnotation(c *models.ReqContext, cmd dtos.UpdateAnnotationsCmd) Response {
+func (hs *HTTPServer) UpdateAnnotation(c *models.ReqContext, cmd dtos.UpdateAnnotationsCmd) Response {
 	annotationID := c.ParamsInt64(":annotationId")
 
-	repo := annotations.GetRepository()
-
-	if resp := canSave(c, repo, annotationID); resp != nil {
+	if resp := canSave(c, hs.AnnotationService, annotationID); resp != nil {
 		return resp
 	}
 
@@ -164,23 +158,21 @@ func UpdateAnnotation(c *models.ReqContext, cmd dtos.UpdateAnnotationsCmd) Respo
 		Tags:     cmd.Tags,
 	}
 
-	if err := repo.Update(&item); err != nil {
+	if err := hs.AnnotationService.Update(&item); err != nil {
 		return Error(500, "Failed to update annotation", err)
 	}
 
 	return Success("Annotation updated")
 }
 
-func PatchAnnotation(c *models.ReqContext, cmd dtos.PatchAnnotationsCmd) Response {
+func (hs *HTTPServer) PatchAnnotation(c *models.ReqContext, cmd dtos.PatchAnnotationsCmd) Response {
 	annotationID := c.ParamsInt64(":annotationId")
 
-	repo := annotations.GetRepository()
-
-	if resp := canSave(c, repo, annotationID); resp != nil {
+	if resp := canSave(c, hs.AnnotationService, annotationID); resp != nil {
 		return resp
 	}
 
-	items, err := repo.Find(&annotations.ItemQuery{AnnotationId: annotationID, OrgId: c.OrgId})
+	items, err := hs.AnnotationService.Find(&annotations.ItemQuery{AnnotationId: annotationID, OrgId: c.OrgId})
 
 	if err != nil || len(items) == 0 {
 		return Error(404, "Could not find annotation to update", err)
@@ -212,17 +204,15 @@ func PatchAnnotation(c *models.ReqContext, cmd dtos.PatchAnnotationsCmd) Respons
 		existing.EpochEnd = cmd.TimeEnd
 	}
 
-	if err := repo.Update(&existing); err != nil {
+	if err := hs.AnnotationService.Update(&existing); err != nil {
 		return Error(500, "Failed to update annotation", err)
 	}
 
 	return Success("Annotation patched")
 }
 
-func DeleteAnnotations(c *models.ReqContext, cmd dtos.DeleteAnnotationsCmd) Response {
-	repo := annotations.GetRepository()
-
-	err := repo.Delete(&annotations.DeleteParams{
+func (hs *HTTPServer) DeleteAnnotations(c *models.ReqContext, cmd dtos.DeleteAnnotationsCmd) Response {
+	err := hs.AnnotationService.Delete(&annotations.DeleteParams{
 		OrgId:       c.OrgId,
 		Id:          cmd.AnnotationId,
 		DashboardId: cmd.DashboardId,
@@ -236,15 +226,13 @@ func DeleteAnnotations(c *models.ReqContext, cmd dtos.DeleteAnnotationsCmd) Resp
 	return Success("Annotations deleted")
 }
 
-func DeleteAnnotationByID(c *models.ReqContext) Response {
-	repo := annotations.GetRepository()
+func (hs *HTTPServer) DeleteAnnotationByID(c *models.ReqContext) Response {
 	annotationID := c.ParamsInt64(":annotationId")
-
-	if resp := canSave(c, repo, annotationID); resp != nil {
+	if resp := canSave(c, hs.AnnotationService, annotationID); resp != nil {
 		return resp
 	}
 
-	err := repo.Delete(&annotations.DeleteParams{
+	err := hs.AnnotationService.Delete(&annotations.DeleteParams{
 		OrgId: c.OrgId,
 		Id:    annotationID,
 	})
@@ -271,8 +259,8 @@ func canSaveByDashboardID(c *models.ReqContext, dashboardID int64) (bool, error)
 	return true, nil
 }
 
-func canSave(c *models.ReqContext, repo annotations.Repository, annotationID int64) Response {
-	items, err := repo.Find(&annotations.ItemQuery{AnnotationId: annotationID, OrgId: c.OrgId})
+func canSave(c *models.ReqContext, annotationService *annotations.Service, annotationID int64) Response {
+	items, err := annotationService.Find(&annotations.ItemQuery{AnnotationId: annotationID, OrgId: c.OrgId})
 
 	if err != nil || len(items) == 0 {
 		return Error(500, "Could not find annotation to update", err)
