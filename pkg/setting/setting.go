@@ -371,6 +371,11 @@ func (cfg Cfg) IsPanelLibraryEnabled() bool {
 	return cfg.FeatureToggles["panelLibrary"]
 }
 
+// RunDatabaseMigrations returns whether Grafana should run database migrations or not.
+func (cfg Cfg) RunDatabaseMigrations() bool {
+	return !cfg.FeatureToggles["skip_db_migration"]
+}
+
 type CommandLineArgs struct {
 	Config   string
 	HomePath string

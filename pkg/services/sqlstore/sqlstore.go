@@ -87,7 +87,7 @@ func (ss *SQLStore) Init() error {
 	x = ss.engine
 	dialect = ss.Dialect
 
-	if !ss.dbCfg.SkipMigrations {
+	if ss.Cfg.RunDatabaseMigrations() {
 		migrator := migrator.NewMigrator(ss.engine)
 		migrations.AddMigrations(migrator)
 
@@ -390,7 +390,6 @@ func (ss *SQLStore) readConfig() {
 	ss.dbCfg.Path = sec.Key("path").MustString("data/grafana.db")
 
 	ss.dbCfg.CacheMode = sec.Key("cache_mode").MustString("private")
-	ss.dbCfg.SkipMigrations = sec.Key("skip_migrations").MustBool()
 }
 
 // ITestDB is an interface of arguments for testing db
@@ -528,5 +527,4 @@ type DatabaseConfig struct {
 	ConnMaxLifetime  int
 	CacheMode        string
 	UrlQueryParams   map[string][]string
-	SkipMigrations   bool
 }
