@@ -372,6 +372,11 @@ func (cfg Cfg) IsPanelLibraryEnabled() bool {
 	return cfg.FeatureToggles["panelLibrary"]
 }
 
+// IsCachingEnabled returns whether the user token and dashboards are cached.
+func (cfg Cfg) IsCachingEnabled() bool {
+	return cfg.FeatureToggles["caching"]
+}
+
 type CommandLineArgs struct {
 	Config   string
 	HomePath string

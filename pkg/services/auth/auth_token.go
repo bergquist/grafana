@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/grafana/grafana/pkg/infra/remotecache"
 	"github.com/grafana/grafana/pkg/infra/serverlock"
 
 	"github.com/grafana/grafana/pkg/infra/log"
@@ -21,6 +22,7 @@ import (
 const ServiceName = "UserAuthTokenService"
 
 func init() {
+	remotecache.Register(models.UserToken{})
 	registry.Register(&registry.Descriptor{
 		Name:         ServiceName,
 		Instance:     &UserAuthTokenService{},
@@ -36,7 +38,9 @@ type UserAuthTokenService struct {
 	SQLStore          *sqlstore.SQLStore            `inject:""`
 	ServerLockService *serverlock.ServerLockService `inject:""`
 	Cfg               *setting.Cfg                  `inject:""`
-	log               log.Logger
+	RemoteCache       *remotecache.RemoteCache      `inject:""`
+
+	log log.Logger
 }
 
 func (s *UserAuthTokenService) Init() error {
@@ -103,6 +107,11 @@ func (s *UserAuthTokenService) CreateToken(ctx context.Context, user *models.Use
 	var userToken models.UserToken
 	err = userAuthToken.toUserToken(&userToken)
 
+	if s.Cfg.IsCachingEnabled() {
+		s.log.Info("saving stuff to the cache")
+		s.RemoteCache.Set(hashedToken, userToken, 0)
+	}
+
 	return &userToken, err
 }
 
@@ -110,6 +119,17 @@ func (s *UserAuthTokenService) LookupToken(ctx context.Context, unhashedToken st
 	hashedToken := hashToken(unhashedToken)
 	if setting.Env == setting.Dev {
 		s.log.Debug("looking up token", "unhashed", unhashedToken, "hashed", hashedToken)
+	}
+
+	if s.Cfg.IsCachingEnabled() {
+		i, err := s.RemoteCache.Get(hashedToken)
+		s.log.Info("found usertoken in cache!")
+		if err != nil {
+			i, ok := i.(*models.UserToken)
+			if ok {
+				return i, nil
+			}
+		}
 	}
 
 	var model userAuthToken
